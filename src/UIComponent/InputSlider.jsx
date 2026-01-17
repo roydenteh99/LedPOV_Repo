@@ -19,7 +19,8 @@ export default function InputSlider({value, setValue, rangeWithStep, name="Unnam
   const internalId = React.useId();// 1. Generate a "backup" ID if one wasn't passed as a prop
   const finalId = id || internalId;// 2. Use the provided 'id' if it exists, otherwise use the generated one
   
-  const [min, max, step] = rangeWithStep; //establish range
+  const [min, max, step] = rangeWithStep ?? [0, 100, 1]; //establish range if it exists
+  // console.log(max)
 //-------------------------Custom variable---------------------//
   
 const handleSliderChange = (event, newValue) => {
@@ -40,7 +41,7 @@ const handleSliderChange = (event, newValue) => {
 
   return (
     <Box sx={{ width: 250 }}>
-      <Typography id="input-slider" gutterBottom>
+      <Typography id={finalId} gutterBottom>
         {name}
       </Typography>
       <Grid container spacing={2} sx={{ alignItems: 'center' }}>
@@ -52,7 +53,10 @@ const handleSliderChange = (event, newValue) => {
           <Slider
             value={typeof value === 'number' ? value : 0}
             onChange={handleSliderChange}
-            aria-labelledby="input-slider"
+            aria-labelledby={finalId}
+            min={min}
+            max={max}
+            step={step}
           />
         </Grid>
         <Grid>
@@ -66,7 +70,7 @@ const handleSliderChange = (event, newValue) => {
               min: min,
               max: max,
               type: 'number',
-              'aria-labelledby': 'input-slider',
+              'aria-labelledby': finalId,
             }}
           />
         </Grid>
