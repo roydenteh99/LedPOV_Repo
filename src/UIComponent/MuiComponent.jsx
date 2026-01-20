@@ -5,6 +5,9 @@ import Grid from '@mui/material/Grid';
 import Typography from '@mui/material/Typography';
 import Slider from '@mui/material/Slider';
 import MuiInput from '@mui/material/Input';
+import Switch from '@mui/material/Switch';
+import FormGroup from '@mui/material/FormGroup';
+import FormControlLabel from '@mui/material/FormControlLabel';
 import { useRadioGroup } from '@mui/material';
 
 
@@ -12,7 +15,7 @@ const Input = styled(MuiInput)`
   width: 42px;
 `;
 
-export default function InputSlider({value, setValue, rangeWithStep, name="Unnamed", id}) {
+export function InputSlider({value, setValue, rangeWithStep, name="Unnamed", id}) {
   // const [value, setValue] = React.useState(30);
 
 //-------------------------Custom variable---------------------//
@@ -23,9 +26,9 @@ export default function InputSlider({value, setValue, rangeWithStep, name="Unnam
   // console.log(max)
 //-------------------------Custom variable---------------------//
   
-const handleSliderChange = (event, newValue) => {
-    setValue(newValue);
-  };
+  const handleSliderChange = (event, newValue) => {
+      setValue(newValue);
+    };
 
   const handleInputChange = (event) => {
     setValue(event.target.value === '' ? 0 : Number(event.target.value));
@@ -76,5 +79,19 @@ const handleSliderChange = (event, newValue) => {
         </Grid>
       </Grid>
     </Box>
+  );
+}
+
+
+export function SwitchLabels({value, setValue, label}) {
+  function onChange() {
+    setValue(!value);
+  }
+
+
+  return (
+    <FormGroup>
+      <FormControlLabel control={<Switch checked= {value} onChange={onChange}/>} label={label} />
+    </FormGroup>
   );
 }

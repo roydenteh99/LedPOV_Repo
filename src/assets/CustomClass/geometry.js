@@ -2,7 +2,7 @@ export class Circle {
     #centrePoint; 
     #radius;
 
-    static create(centrePoint, radius) {
+    static fromPoint(centrePoint, radius) {
         if (!(centrePoint instanceof Point)) {
             console.warn("Invalid centrePoint, please use Point.create(x,y) for centrePoint ")
             return null
@@ -14,7 +14,11 @@ export class Circle {
         }
 
         }
-    
+    static fromCoords(x, y, radius) {
+        let centrePoint = Point.create(x, y)
+        return new Circle(centrePoint,radius)
+
+    }
 
     constructor(centrePoint, radius) {
         this.#centrePoint = centrePoint;
@@ -22,9 +26,30 @@ export class Circle {
         // console.log("circle created")
     }
 
-    inSideCircle (point) {
+    isInside (point) {
         return (this.#centrePoint.distTo(point)) <= this.#radius;
 
+    }
+
+    move_x(x_increment) {
+        this.#centrePoint.x += x_increment
+
+    }
+
+    set_x(x_value) {
+        this.#centrePoint.x = x_value 
+    }
+    
+    get x() {
+        return this.#centrePoint.x;
+    }
+
+    get y() {
+        return this.#centrePoint.y;
+    }
+
+    get radius() {
+        return this.#radius;
     } 
 
 }
@@ -46,6 +71,10 @@ export class Point {
         this.#x= x_coord;
         this.#y= y_coord;
     }
+    
+    set x(value){
+        this.#x = value
+    }
 
     get x(){
         return this.#x;
@@ -56,7 +85,7 @@ export class Point {
     }
 
     distTo(otherPoint) {
-        if (typeof otherPoint instanceof Point) {
+        if (!(otherPoint instanceof Point)) {
             console.warn("Invalid Point .Returning  0");
             return 0 ;
         }
@@ -69,9 +98,9 @@ export class Point {
 
 }
 
-// const p = new Point(3,4)
-// const y = new Point(4,5)
-// const y =  Circle.create(Point.create(0,0),10)
+const p = new Point(3,4)
+const y = new Point(4,5)
+const circle =  Circle.fromPoint(Point.create(0,0),10)
 
-// console.log(y.inSideCircle(Point.create(1,1)))
-// // console.log(p.distTo(y))
+console.log(circle.isInside(Point.create(20,20)))
+// console.log(p.distTo(y))
