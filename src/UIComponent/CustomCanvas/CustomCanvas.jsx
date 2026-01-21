@@ -8,6 +8,7 @@ import styles from './CustomCanvas.module.css'
 export default function Canvas(props) {
     const [noOfLed, setNoOfLed] = React.useState(LED_SETTINGS.INITIAL_VALUE);
     const [moveLed, setMoveLed] = React.useState(false);
+    const [speed, setSpeed] = React.useState(0);
 
     const canvasRef = useRef(null) // before it fully load lets place null as a place holder for canvasRef
     const [activeCircle,setActiveCircle] = useState(null)
@@ -25,13 +26,16 @@ export default function Canvas(props) {
     useEffect(() => {
         const canvas = canvasRef.current;
         const stage = drawStage(canvas);
+        
+        
+        
         const circleManager = new CircleManager(stage, (e, c) => setActiveCircle(c));
         managerRef.current = circleManager  
-        circleManager.createColumnOfCircle(noOfLed, 50, 15)
+        circleManager.init(noOfLed, speed, 50, 15)
         
         Ticker.timingMode = Ticker.RAF;
         Ticker.addEventListener("tick", (event) => {
-            circleManager.update()
+            circleManager.update(event.delta)
             
             if (stage) {stage.update();}
         });
@@ -46,14 +50,16 @@ export default function Canvas(props) {
     
     useEffect(() => {
         if(managerRef.current) {
-            managerRef.current.adjust_circle(noOfLed)
-            managerRef.current.set_moveLedState(moveLed)
+            managerRef.current.syncCircleQuantity(noOfLed)
+            managerRef.current.setIsMoving(moveLed)
+            managerRef.current.syncSpeed(speed)
         }
-    }, [noOfLed,moveLed])
+    }, [noOfLed,moveLed,speed])
 
     return (<div style={{ position: 'relative', display: 'inline-block' }}>
 
                 <canvas className={styles.canvas} ref={canvasRef} style={props} width={500} height={500}/>
+                
                 
                 {activeCircle && ( // the && ie AND  means that the element of input does not get process if activeCirle is null
                     <input 
@@ -83,13 +89,21 @@ export default function Canvas(props) {
                 setValue= {setMoveLed}
                 label="Run"
                 />
-        
+                
                 <InputSlider 
                 value = {noOfLed} 
                 setValue={setNoOfLed} 
                 rangeWithStep = {LED_SETTINGS.RANGE} 
                 name="Number of Led"
                 id = "noOfLed"
+                />
+        
+                <InputSlider 
+                value = {speed} 
+                setValue={setSpeed} 
+                rangeWithStep = {LED_SETTINGS.RANGE} 
+                name="Horizontal Speed"
+                id = "speed"
                 />
             </div>)
      // Wrapper for canva passing the props into dom's/native canvas

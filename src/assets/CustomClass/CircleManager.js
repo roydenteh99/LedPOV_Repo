@@ -1,5 +1,6 @@
+import { touchRippleClasses } from "@mui/material";
 import {Circle, Point} from "./geometry.js";
-import {Shape,Shadow} from "@createjs/easeljs";
+import {Shape,Shadow,Container} from "@createjs/easeljs";
 
 
 // Note to self should have inherit the circle class so i dont have to rewrite some of the function
@@ -39,8 +40,10 @@ export class SingleCircle extends Shape {
                 0, 0, this.radius * 2
                 )
             .dc(0, 0, this.radius * 2);
+             this.compositeOperation = "lighter";
+
         
-        this.compositeOperation = "lighter";
+        
     }
 
     move_x(x_increment) {
@@ -68,82 +71,110 @@ export class SingleCircle extends Shape {
 
 }
 
-export class CircleManager {
-    constructor(stage, onClicked = null){
-        this.stage = stage
-        this.circleContainer = []
-        this.onClicked = onClicked
-        this.moveLedState = false
-        this.horizontalSpeed = 10
-        this.spacing = 0
-        this.circleRadius = 0
+export class CircleManager extends Container  {
+    constructor(stated_stage, onClicked = null){
+        super()
+        stated_stage.addChild(this)
+        this.onClicked = onClicked;
+        this.isMoving = false;
+        this.horizontalSpeed = 0;
+        this.spacing = 0 ;
+        this.circleRadius = 0;
         this.offset = [50, 50];
+        this.trailPersistence = 500
     }
 
-    createColumnOfCircle(noOfCircle, spacing, circleRadius, offset = [50,50]) {
-        this.spacing = spacing
-        this.circleRadius = circleRadius
-        this.offset = offset;
+    init(noOfCircle, horizontalSpeed ,spacing, circleRadius, offset = [50,50]) {
+        this.spacing = spacing;
+        this.horizontalSpeed = horizontalSpeed;
+        this.circleRadius = circleRadius;
+        this.x = offset[0];
+        this.y = offset[1];
+        
         for (let i = 0 ; i < noOfCircle ; i++) {
             this._addSingleCircle(i)
-        } 
+        }
+        
+    }
+    _handleTrail(delta) {
+        if (!this.stage || !this.stage.canvas) 
+            return;
+
+        // 1. Disable the automatic wipe
+        this.stage.autoClear = false;
+
+        // 2. Get the 2D context to draw the "Fader"
+        const ctx = this.stage.canvas.getContext("2d");
+
+        // 3. Calculate fade based on delta for frame-rate independence
+        const fadeAlpha = Math.min(1,  (delta) / this.trailPersistence);
+
+        // 4. Draw the fading rectangle
+        ctx.fillStyle = `rgba(0, 0, 0, ${fadeAlpha})`;
+        ctx.fillRect(0, 0, this.stage.canvas.width, this.stage.canvas.height);
     }
 
     _addSingleCircle(index){
         let circle = new SingleCircle(
-            this.offset[0] , this.offset[1] + index* this.spacing, 
+            0 , 0 + index * this.spacing, 
             this.circleRadius, 
             "white", 
             index);
 
         circle.setOnClicked(this.onClicked);
-        this.stage.addChild(circle);
-        this.circleContainer.push(circle);
+        this.addChild(circle);
 
     }
 
-    adjust_circle(newNoOfCircle) {
-        while (newNoOfCircle > this.circleContainer.length){
-            this._addSingleCircle(this.circleContainer.length);
+    syncCircleQuantity(newNoOfCircle) {
+        while (newNoOfCircle > this.children.length){
+            this._addSingleCircle(this.children.length);
         }
 
-        while (newNoOfCircle< this.circleContainer.length){
-            this.stage.removeChild(this.circleContainer.pop())
+        while (newNoOfCircle< this.children.length){
+           this.removeChildAt(this.children.length - 1);
         }
-    } 
-
-    set_x_speed(speed){
+    }
+    
+    syncSpeed(speed){
         this.horizontalSpeed = speed
     }
 
 
-    move_x(x_increment){      
-        this.circleContainer.forEach(
-            (circle) => {
-                if (circle.x > this.stage.canvas.width){
-                    circle.set_x(-10);
-                }
-                else{
-                circle.move_x(x_increment);}
+    processMovement(delta){
+        this.x += (delta * this.horizontalSpeed) / 100;
+        let maximumWidth  = this.stage.canvas.width
+        // Safety: Only check width if the stage is ready
+        if (this.stage && this.stage.canvas) {
+            let maximumWidth = this.stage.canvas.width;
+        
+        // Use a dynamic reset point based on the circle size
+            if (this.x > maximumWidth) {
+                this.x = -(this.circleRadius * 4);
             }
-        )
-    }
-
-    set_moveLedState(toMove) {
-        this.moveLedState = toMove
-    }
-
-    update(){
-        if (this.moveLedState){
-            this.move_x(this.horizontalSpeed)
         }
+        
     }
+
+    setIsMoving(toMove) {
+        this.isMoving = toMove
+    }
+
+    update(delta){
+        if (this.isMoving){
+            this._handleTrail(delta)
+            this.processMovement(delta)
+        }
+        else {
+            this.stage.autoClear = true
+        }
+
+    }
+
 
     destroy() {
         // Clean up listeners to prevent memory leaks
-        this.circleContainer.forEach(c => c.destroy());
-        this.stage.removeAllChildren();
-        this.stage.removeAllEventListeners();
+        this.removeAllChildren();
         this.circleContainer = [];
     }
 }
