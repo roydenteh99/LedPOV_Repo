@@ -1,7 +1,7 @@
 import React, { useEffect ,useRef, useState} from 'react';
 import {Ticker, Stage ,Shape} from "@createjs/easeljs";
 import { SingleCircle , CircleManager} from '../../assets/CustomClass/CircleManager.js';
-import { LED_SETTINGS } from '../../config.js';
+import { LED_SETTINGS,SPEED_SETTINGS } from '../../config.js';
 import {InputSlider, SwitchLabels} from '../MuiComponent.jsx';
 import styles from './CustomCanvas.module.css' 
 
@@ -58,7 +58,7 @@ export default function Canvas(props) {
 
     return (<div style={{ position: 'relative', display: 'inline-block' }}>
 
-                <canvas className={styles.canvas} ref={canvasRef} style={props} width={500} height={500}/>
+                <canvas className={styles.canvas} ref={canvasRef} style={props} width={1000} height={500}/>
                 
                 
                 {activeCircle && ( // the && ie AND  means that the element of input does not get process if activeCirle is null
@@ -101,7 +101,7 @@ export default function Canvas(props) {
                 <InputSlider 
                 value = {speed} 
                 setValue={setSpeed} 
-                rangeWithStep = {LED_SETTINGS.RANGE} 
+                rangeWithStep = {SPEED_SETTINGS.RANGE} 
                 name="Horizontal Speed"
                 id = "speed"
                 />

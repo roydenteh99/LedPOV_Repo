@@ -1,6 +1,6 @@
 import { touchRippleClasses } from "@mui/material";
 import {Circle, Point} from "./geometry.js";
-import {Shape,Shadow,Container} from "@createjs/easeljs";
+import {Shape,Graphics,Container} from "@createjs/easeljs";
 
 
 // Note to self should have inherit the circle class so i dont have to rewrite some of the function
@@ -32,15 +32,18 @@ export class SingleCircle extends Shape {
     
     // }
     _draw() {
+
+
+
         this.graphics.
         clear().
         beginRadialGradientFill( // Create a gradient: Bright color in center -> Transparent version of color at edge
-                [this.color, "rgba(0,0,0,0)"], [0.4, 1], 
+                [this.color, 'rgba(0,0,0,0)'], [0.4, 1], 
                 0, 0, 0, 
                 0, 0, this.radius * 2
                 )
             .dc(0, 0, this.radius * 2);
-             this.compositeOperation = "lighter";
+            this.compositeOperation = "screen";
 
         
         
@@ -82,6 +85,9 @@ export class CircleManager extends Container  {
         this.circleRadius = 0;
         this.offset = [50, 50];
         this.trailPersistence = 500
+        this.prevX = null
+        this.recorder = new Shape();
+        this.addChild(this.recorder);
     }
 
     init(noOfCircle, horizontalSpeed ,spacing, circleRadius, offset = [50,50]) {
@@ -100,11 +106,23 @@ export class CircleManager extends Container  {
         if (!this.stage || !this.stage.canvas) 
             return;
 
+        if (this.prevX && this.prevX < this.x) {
+            var g = this.recorder.graphics;
+            if (this.horizontalSpeed > 150 ){
+            
+            g.setStrokeStyle(this.circleRadius * 2 ).beginFill("white").beginStroke("white").moveTo(0,0).lineTo(this.prevX -this.x ,0).endStroke();
+            }
+            else{
+                g.clear()
+            }
+        }
+
         // 1. Disable the automatic wipe
         this.stage.autoClear = false;
 
         // 2. Get the 2D context to draw the "Fader"
         const ctx = this.stage.canvas.getContext("2d");
+
 
         // 3. Calculate fade based on delta for frame-rate independence
         const fadeAlpha = Math.min(1,  (delta) / this.trailPersistence);
@@ -142,6 +160,7 @@ export class CircleManager extends Container  {
 
 
     processMovement(delta){
+        
         this.x += (delta * this.horizontalSpeed) / 100;
         let maximumWidth  = this.stage.canvas.width
         // Safety: Only check width if the stage is ready
@@ -162,8 +181,11 @@ export class CircleManager extends Container  {
 
     update(delta){
         if (this.isMoving){
-            this._handleTrail(delta)
+            
             this.processMovement(delta)
+            this._handleTrail(delta)
+            
+            this.prevX = this.x
         }
         else {
             this.stage.autoClear = true
