@@ -1,0 +1,10 @@
+.canvas {
+    
+    background-color: black;
+}
+
+.colorInput {
+    position: absolute ;
+    background-color: white;
+    left: 100 ;                      
+}
