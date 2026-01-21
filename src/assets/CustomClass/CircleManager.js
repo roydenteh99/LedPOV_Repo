@@ -69,25 +69,48 @@ export class SingleCircle extends Shape {
 }
 
 export class CircleManager {
-    constructor(stage, onClicked = null, moveLedState = null  ){
+    constructor(stage, onClicked = null){
         this.stage = stage
         this.circleContainer = []
         this.onClicked = onClicked
-        this.moveLedState = moveLedState
+        this.moveLedState = false
         this.horizontalSpeed = 10
-        
+        this.spacing = 0
+        this.circleRadius = 0
+        this.offset = [50, 50];
     }
 
     createColumnOfCircle(noOfCircle, spacing, circleRadius, offset = [50,50]) {
+        this.spacing = spacing
+        this.circleRadius = circleRadius
+        this.offset = offset;
         for (let i = 0 ; i < noOfCircle ; i++) {
-            let circle = new SingleCircle(offset[0] , offset[1] + i*spacing, circleRadius, "white", i);
-            circle.setOnClicked(this.onClicked);
-            this.stage.addChild(circle);
-            this.circleContainer.push(circle);
+            this._addSingleCircle(i)
         } 
     }
 
-    adjust 
+    _addSingleCircle(index){
+        let circle = new SingleCircle(
+            this.offset[0] , this.offset[1] + index* this.spacing, 
+            this.circleRadius, 
+            "white", 
+            index);
+
+        circle.setOnClicked(this.onClicked);
+        this.stage.addChild(circle);
+        this.circleContainer.push(circle);
+
+    }
+
+    adjust_circle(newNoOfCircle) {
+        while (newNoOfCircle > this.circleContainer.length){
+            this._addSingleCircle(this.circleContainer.length);
+        }
+
+        while (newNoOfCircle< this.circleContainer.length){
+            this.stage.removeChild(this.circleContainer.pop())
+        }
+    } 
 
     set_x_speed(speed){
         this.horizontalSpeed = speed
@@ -104,6 +127,10 @@ export class CircleManager {
                 circle.move_x(x_increment);}
             }
         )
+    }
+
+    set_moveLedState(toMove) {
+        this.moveLedState = toMove
     }
 
     update(){
