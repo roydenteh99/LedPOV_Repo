@@ -12,8 +12,9 @@ export class SingleCircle extends Shape {
         this.color = color;
         this.onClicked = null;
         this.ledId = customId;
-        this._draw();
         
+        
+        this._draw();
         this.addEventListener("click", (evt) => {
             if (this.onClicked) this.onClicked(evt, this);
         });
@@ -30,30 +31,67 @@ export class SingleCircle extends Shape {
     
     // }
     _draw() {
-
-        this.compositeOperation = "screen"
-
+        // Create a circle with glowEffect: Bright color in center -> Transparent version of color at edge
         this.graphics.
         clear().
-        beginRadialGradientFill( // Create a gradient: Bright color in center -> Transparent version of color at edge
-                [this.color, 'rgba(0,0,0,0)'], [0.4, 1], 
+        beginRadialGradientFill( 
+                [this.color, 'rgba(0, 0, 0, 0)'], [0.5, 1], 
                 0, 0, 0, 
-                0, 0, this.radius * 1.5
-                )
-            .dc(0, 0, this.radius * 1.5);
-            
+                0, 0, this.radius * 2).
+        dc(0, 0, this.radius * 2);
+
+        this.drawTrail(100,0)
 
         
-        
+
+
+
+
     }
 
-    move_x(x_increment) {
-        this.x += x_increment
+
+    drawTrail(length, colorArray) {
+        // this.graphics.beginLinearGradientFill(
+        //         [this.color, "rgba(0,0,0,0)"], // Colors
+        //         [0.5, 1], 0, 0,-length, 0).                     // End point (at the end of the trail)
+        //     drawRoundRectComplex(-length , -this.radius, length  ,this.radius * 2 ,this.radius ,0  ,0,this.radius)
+        const coreWeight = this.radius * 2;
+        const glowWeight = this.radius * 2.5; // Total vertical thickness of the glow
+        this.graphics.setStrokeStyle(coreWeight, "round")
+        .beginLinearGradientStroke(
+        [this.color, "rgba(255,255,255,0.15)"], 
+        [0.4,1], 
+        0, 0, 
+        -length * 0.5, 0)
+        .moveTo(0, 0)
+        .lineTo(-length, 0)
+        .endStroke();
+
+
+
+    //     // 2. Draw the "Core Capsule" (The bright center)
+    // // This makes the center of the capsule look like a solid light source
+    // this.graphics.setStrokeStyle(this.radius * 2, "round")
+    //     .beginLinearGradientStroke(
+    //         ["white", this.color], 
+    //         [0, 0.8], 
+    //         0, 0, 
+    //         -length * 0.5, 0
+    //     )
+    //     .moveTo(0, 0)
+    //     .lineTo(-length * 0.5, 0)
+    //     .endStroke();
+
+
     }
 
-    set_x(x_value) {
-        this.x = x_value
-    }
+    // move_x(x_increment) {
+    //     this.x += x_increment
+    // }
+
+    // set_x(x_value) {
+    //     this.x = x_value
+    // }
 
     destroy() {
     // This removes EVERY listener attached to this shape (click, mouseover, etc.)
@@ -76,7 +114,8 @@ export class CircleManager extends Container  {
     constructor(stated_stage, onClicked = null){
         super()
         stated_stage.addChild(this)
-        // stated_stage.compositeOperation = "luminosity"
+        
+        this.compositeOperation = "lighter";
         this.onClicked = onClicked;
         this.isMoving = false;
         this.horizontalSpeed = 0;
@@ -86,13 +125,6 @@ export class CircleManager extends Container  {
         this.trailPersistence = 200
         this.prevX = null
         
-        
-        //Experimenting this 
-        this.fadeShape = new Shape();
-        this.fadeShape.compositeOperation ="source-over";
-        // 
-
-        this.stage.addChild(this.fadeShape);
         
         
     }
@@ -110,24 +142,6 @@ export class CircleManager extends Container  {
         
     }
     _handleTrail(delta) {
-        // if (!this.stage || !this.stage.canvas) 
-        //     return;
-
-        // if (this.prevX && this.prevX < this.x) {
-        //     var g = this.recorder.graphics;
-        //     if (this.horizontalSpeed > 150){
-            
-        //     g.setStrokeStyle(this.circleRadius * 2 ).beginFill("white").beginStroke("white").moveTo(0,0).lineTo(this.prevX -this.x ,0).endStroke();
-        //     }
-        //     else{
-        //         g.clear()
-        //     }
-        // }
-
-        // 1. Disable the automatic wipe
-        this.stage.autoClear = false;
-
-
     }
 
 
@@ -185,9 +199,6 @@ export class CircleManager extends Container  {
             this._handleTrail(delta)
             
             this.prevX = this.x
-        }
-        else {
-            this.stage.autoClear = true
         }
 
     }
