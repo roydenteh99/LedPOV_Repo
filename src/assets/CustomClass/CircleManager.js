@@ -34,13 +34,10 @@ export class SingleCircle extends Shape {
         // Create a circle with glowEffect: Bright color in center -> Transparent version of color at edge
         this.graphics.
         clear().
-        beginRadialGradientFill( 
-                [this.color, 'rgba(0, 0, 0, 0)'], [0.5, 1], 
-                0, 0, 0, 
-                0, 0, this.radius * 2).
-        dc(0, 0, this.radius * 2);
+        beginFill("white").
+        dc(0, 0, this.radius );
 
-        this.drawTrail(100,0)
+        // this.drawTrail(100,0)
 
         
 
@@ -56,10 +53,9 @@ export class SingleCircle extends Shape {
         //         [0.5, 1], 0, 0,-length, 0).                     // End point (at the end of the trail)
         //     drawRoundRectComplex(-length , -this.radius, length  ,this.radius * 2 ,this.radius ,0  ,0,this.radius)
         const coreWeight = this.radius * 2;
-        const glowWeight = this.radius * 2.5; // Total vertical thickness of the glow
         this.graphics.setStrokeStyle(coreWeight, "round")
         .beginLinearGradientStroke(
-        [this.color, "rgba(255,255,255,0.15)"], 
+        [this.color, "rgba(255,255,255,0)"], 
         [0.4,1], 
         0, 0, 
         -length * 0.5, 0)
@@ -142,6 +138,10 @@ export class CircleManager extends Container  {
         
     }
     _handleTrail(delta) {
+        this.children.forEach(element => {
+            element.drawTrail(this.horizontalSpeed *1)
+            
+        });
     }
 
 
