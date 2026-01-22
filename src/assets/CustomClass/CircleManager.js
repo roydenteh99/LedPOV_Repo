@@ -1,5 +1,3 @@
-import { touchRippleClasses } from "@mui/material";
-import {Circle, Point} from "./geometry.js";
 import {Shape,Graphics,Container} from "@createjs/easeljs";
 
 
@@ -33,17 +31,17 @@ export class SingleCircle extends Shape {
     // }
     _draw() {
 
-
+        this.compositeOperation = "screen"
 
         this.graphics.
         clear().
         beginRadialGradientFill( // Create a gradient: Bright color in center -> Transparent version of color at edge
                 [this.color, 'rgba(0,0,0,0)'], [0.4, 1], 
                 0, 0, 0, 
-                0, 0, this.radius * 2
+                0, 0, this.radius * 1.5
                 )
-            .dc(0, 0, this.radius * 2);
-            this.compositeOperation = "screen";
+            .dc(0, 0, this.radius * 1.5);
+            
 
         
         
@@ -78,16 +76,25 @@ export class CircleManager extends Container  {
     constructor(stated_stage, onClicked = null){
         super()
         stated_stage.addChild(this)
+        // stated_stage.compositeOperation = "luminosity"
         this.onClicked = onClicked;
         this.isMoving = false;
         this.horizontalSpeed = 0;
         this.spacing = 0 ;
         this.circleRadius = 0;
         this.offset = [50, 50];
-        this.trailPersistence = 500
+        this.trailPersistence = 200
         this.prevX = null
-        this.recorder = new Shape();
-        this.addChild(this.recorder);
+        
+        
+        //Experimenting this 
+        this.fadeShape = new Shape();
+        this.fadeShape.compositeOperation ="source-over";
+        // 
+
+        this.stage.addChild(this.fadeShape);
+        
+        
     }
 
     init(noOfCircle, horizontalSpeed ,spacing, circleRadius, offset = [50,50]) {
@@ -103,34 +110,26 @@ export class CircleManager extends Container  {
         
     }
     _handleTrail(delta) {
-        if (!this.stage || !this.stage.canvas) 
-            return;
+        // if (!this.stage || !this.stage.canvas) 
+        //     return;
 
-        if (this.prevX && this.prevX < this.x) {
-            var g = this.recorder.graphics;
-            if (this.horizontalSpeed > 150 ){
+        // if (this.prevX && this.prevX < this.x) {
+        //     var g = this.recorder.graphics;
+        //     if (this.horizontalSpeed > 150){
             
-            g.setStrokeStyle(this.circleRadius * 2 ).beginFill("white").beginStroke("white").moveTo(0,0).lineTo(this.prevX -this.x ,0).endStroke();
-            }
-            else{
-                g.clear()
-            }
-        }
+        //     g.setStrokeStyle(this.circleRadius * 2 ).beginFill("white").beginStroke("white").moveTo(0,0).lineTo(this.prevX -this.x ,0).endStroke();
+        //     }
+        //     else{
+        //         g.clear()
+        //     }
+        // }
 
         // 1. Disable the automatic wipe
         this.stage.autoClear = false;
 
-        // 2. Get the 2D context to draw the "Fader"
-        const ctx = this.stage.canvas.getContext("2d");
 
-
-        // 3. Calculate fade based on delta for frame-rate independence
-        const fadeAlpha = Math.min(1,  (delta) / this.trailPersistence);
-
-        // 4. Draw the fading rectangle
-        ctx.fillStyle = `rgba(0, 0, 0, ${fadeAlpha})`;
-        ctx.fillRect(0, 0, this.stage.canvas.width, this.stage.canvas.height);
     }
+
 
     _addSingleCircle(index){
         let circle = new SingleCircle(
