@@ -28,11 +28,14 @@ export default function Canvas(props) {
         const stage = drawStage(canvas);
         
         
-        
         const circleManager = new CircleManager(stage, (e, c) => setActiveCircle(c));
-        managerRef.current = circleManager  
-        circleManager.init(noOfLed, speed, 50, 15)
+        managerRef.current = circleManager;  
+        circleManager.init(noOfLed, speed, 50, 15);
         
+
+
+
+
         Ticker.timingMode = Ticker.RAF;
         Ticker.addEventListener("tick", (event) => {
             circleManager.update(event.delta)

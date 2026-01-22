@@ -32,21 +32,10 @@ export class SingleCircle extends Shape {
     
     // }
     _draw() {
-
-
-
         this.graphics.
         clear().
-        beginRadialGradientFill( // Create a gradient: Bright color in center -> Transparent version of color at edge
-                [this.color, 'rgba(0,0,0,0)'], [0.4, 1], 
-                0, 0, 0, 
-                0, 0, this.radius * 2
-                )
-            .dc(0, 0, this.radius * 2);
-            this.compositeOperation = "screen";
-
-        
-        
+        beginFill(this.color)
+            .dc(0, 0, this.radius)
     }
 
     move_x(x_increment) {
@@ -77,17 +66,37 @@ export class SingleCircle extends Shape {
 export class CircleManager extends Container  {
     constructor(stated_stage, onClicked = null){
         super()
-        stated_stage.addChild(this)
+
+
+        
+
+
         this.onClicked = onClicked;
         this.isMoving = false;
         this.horizontalSpeed = 0;
         this.spacing = 0 ;
         this.circleRadius = 0;
         this.offset = [50, 50];
-        this.trailPersistence = 500
+        
+        this.fader = new Shape();
+        this.initfader(stated_stage)
+        
+        stated_stage.addChild(this.fader)
+        stated_stage.addChild(this)
+        stated_stage.compositeOperation= "luminosity"
+
+
+        // this.trailPersistence = 500
         this.prevX = null
         this.recorder = new Shape();
-        this.addChild(this.recorder);
+        // this.addChild(this.recorder);
+    }
+
+    initfader(stage) {
+        this.fader.graphics
+        .beginFill("rgba(0, 0, 0, 0.1)") // The "fill" logic
+        .drawRect(0, 0, stage.canvas.width, stage.canvas.height);
+        
     }
 
     init(noOfCircle, horizontalSpeed ,spacing, circleRadius, offset = [50,50]) {
@@ -103,22 +112,20 @@ export class CircleManager extends Container  {
         
     }
     _handleTrail(delta) {
-        if (!this.stage || !this.stage.canvas) 
-            return;
+        return
+        // if (!this.stage || !this.stage.canvas) 
+        //     return;
 
-        if (this.prevX && this.prevX < this.x) {
-            var g = this.recorder.graphics;
-            if (this.horizontalSpeed > 150 ){
+        // if (this.prevX && this.prevX < this.x) {
+        //     var g = this.recorder.graphics;
+        //     if (this.horizontalSpeed > 150 ){
             
-            g.setStrokeStyle(this.circleRadius * 2 ).beginFill("white").beginStroke("white").moveTo(0,0).lineTo(this.prevX -this.x ,0).endStroke();
-            }
-            else{
-                g.clear()
-            }
-        }
-
-        // 1. Disable the automatic wipe
-        this.stage.autoClear = false;
+        //     g.setStrokeStyle(this.circleRadius * 2 ).beginFill("white").beginStroke("white").moveTo(0,0).lineTo(this.prevX -this.x ,0).endStroke();
+        //     }
+        //     else{
+        //         g.clear()
+        //     }
+        
 
         // 2. Get the 2D context to draw the "Fader"
         const ctx = this.stage.canvas.getContext("2d");
@@ -160,13 +167,11 @@ export class CircleManager extends Container  {
 
 
     processMovement(delta){
-        
         this.x += (delta * this.horizontalSpeed) / 100;
         let maximumWidth  = this.stage.canvas.width
         // Safety: Only check width if the stage is ready
         if (this.stage && this.stage.canvas) {
             let maximumWidth = this.stage.canvas.width;
-        
         // Use a dynamic reset point based on the circle size
             if (this.x > maximumWidth) {
                 this.x = -(this.circleRadius * 4);
@@ -180,17 +185,18 @@ export class CircleManager extends Container  {
     }
 
     update(delta){
+        this.fader.graphics.command.fill = "rgba(0, 0, 0, 0.1)";
         if (this.isMoving){
+            this.stage.autoClear = false
+            
             
             this.processMovement(delta)
             this._handleTrail(delta)
-            
             this.prevX = this.x
-        }
-        else {
+
+        } else {
             this.stage.autoClear = true
         }
-
     }
 
 
