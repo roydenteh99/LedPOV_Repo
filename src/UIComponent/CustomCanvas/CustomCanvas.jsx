@@ -1,5 +1,5 @@
 import React, { useEffect ,useRef, useState} from 'react';
-import {Ticker, Stage ,Shape} from "@createjs/easeljs";
+import {Ticker, Stage ,Shape, StageGL} from "@createjs/easeljs";
 import { SingleCircle , CircleManager} from '../../assets/CustomClass/CircleManager.js';
 import { LED_SETTINGS,SPEED_SETTINGS } from '../../config.js';
 import {InputSlider, SwitchLabels} from '../MuiComponent.jsx';
@@ -37,8 +37,10 @@ export default function Canvas(props) {
 
 
         Ticker.timingMode = Ticker.RAF;
+        // Ticker.framerate = 30;
         Ticker.addEventListener("tick", (event) => {
             circleManager.update(event.delta)
+            //console.log("frameRate : ",Math.floor(1000/event.delta) )
             
             if (stage) {stage.update();}
         });

@@ -1,7 +1,5 @@
-import { touchRippleClasses } from "@mui/material";
-import {Circle, Point} from "./geometry.js";
 import {Shape,Graphics,Container} from "@createjs/easeljs";
-
+import Color from 'color';
 
 // Note to self should have inherit the circle class so i dont have to rewrite some of the function
 export class SingleCircle extends Shape {
@@ -67,26 +65,23 @@ export class CircleManager extends Container  {
     constructor(stated_stage, onClicked = null){
         super()
 
-
-        
-
-
         this.onClicked = onClicked;
         this.isMoving = false;
         this.horizontalSpeed = 0;
         this.spacing = 0 ;
         this.circleRadius = 0;
         this.offset = [50, 50];
+        this.elapsedTime = 0
         
         this.fader = new Shape();
         this.initfader(stated_stage)
         
         stated_stage.addChild(this.fader)
         stated_stage.addChild(this)
-        stated_stage.compositeOperation= "luminosity"
+        //stated_stage.compositeOperation= "luminosity"
 
 
-        // this.trailPersistence = 500
+        this.fadeTimeInms = 500
         this.prevX = null
         this.recorder = new Shape();
         // this.addChild(this.recorder);
@@ -112,31 +107,38 @@ export class CircleManager extends Container  {
         
     }
     _handleTrail(delta) {
-        return
-        // if (!this.stage || !this.stage.canvas) 
-        //     return;
 
-        // if (this.prevX && this.prevX < this.x) {
-        //     var g = this.recorder.graphics;
-        //     if (this.horizontalSpeed > 150 ){
-            
-        //     g.setStrokeStyle(this.circleRadius * 2 ).beginFill("white").beginStroke("white").moveTo(0,0).lineTo(this.prevX -this.x ,0).endStroke();
-        //     }
-        //     else{
-        //         g.clear()
-        //     }
+        //To have trail you need it to fade (DEATH TO LIFE)
+        const fadeAlpha = Math.min(1,  (delta) / this.fadeTimeInms);
+        //console.log(fadeAlpha)
+        this.fader.graphics.command.fill = `rgba(0, 0, 0, ${fadeAlpha})`;
+
+        const ctx = this.stage.canvas.getContext("2d")
+        const dist = (delta * this.horizontalSpeed) / 100 
+        const calAlpha = 1 - fadeAlpha
+        //Setting gradient
+
+        this.children.forEach( (child) => {
+        let gradient =ctx.createLinearGradient(this.x , this.y + child.y , this.x - dist , this.y + child.y)
+        gradient.addColorStop(0 , "white");
         
+        gradient.addColorStop(1, `rgba(255,255,255,${calAlpha})`);
 
-        // 2. Get the 2D context to draw the "Fader"
-        const ctx = this.stage.canvas.getContext("2d");
+        // 3. Draw the Line
+        ctx.strokeStyle = gradient;
+        ctx.lineWidth = this.circleRadius * 2;
+        ctx.lineCap = "round";
+
+        ctx.beginPath();
+        ctx.moveTo(this.x, this.y + child.y);              // Start at circle center
+        ctx.lineTo(this.x - dist, this.y + child.y); // Draw to the left
+        ctx.stroke();
+
+        } )
 
 
-        // 3. Calculate fade based on delta for frame-rate independence
-        const fadeAlpha = Math.min(1,  (delta) / this.trailPersistence);
 
-        // 4. Draw the fading rectangle
-        ctx.fillStyle = `rgba(0, 0, 0, ${fadeAlpha})`;
-        ctx.fillRect(0, 0, this.stage.canvas.width, this.stage.canvas.height);
+
     }
 
     _addSingleCircle(index){
@@ -147,7 +149,7 @@ export class CircleManager extends Container  {
             index);
 
         circle.setOnClicked(this.onClicked);
-        this.addChild(circle);
+        this.addChildAt(circle, index);
 
     }
 
@@ -168,15 +170,17 @@ export class CircleManager extends Container  {
 
     processMovement(delta){
         this.x += (delta * this.horizontalSpeed) / 100;
-        let maximumWidth  = this.stage.canvas.width
+        
         // Safety: Only check width if the stage is ready
         if (this.stage && this.stage.canvas) {
             let maximumWidth = this.stage.canvas.width;
         // Use a dynamic reset point based on the circle size
             if (this.x > maximumWidth) {
-                this.x = -(this.circleRadius * 4);
+                this.x = this.x % maximumWidth 
             }
         }
+
+
         
     }
 
@@ -185,7 +189,9 @@ export class CircleManager extends Container  {
     }
 
     update(delta){
-        this.fader.graphics.command.fill = "rgba(0, 0, 0, 0.1)";
+        this.elapsedTime += delta;
+    
+
         if (this.isMoving){
             this.stage.autoClear = false
             
