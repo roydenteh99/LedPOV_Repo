@@ -137,7 +137,7 @@ export class CircleManager extends Container  {
         }
         
     }
-    _handleTrail(delta) {
+    _handleTrail(delta ,ctx = null , offset = [0,0] ) {
         this.children.forEach(element => {
             element.drawTrail(this.horizontalSpeed *1)
             
@@ -153,7 +153,7 @@ export class CircleManager extends Container  {
             index);
 
         circle.setOnClicked(this.onClicked);
-        this.addChild(circle);
+        this.addChildAt(circle, index);
 
     }
 
