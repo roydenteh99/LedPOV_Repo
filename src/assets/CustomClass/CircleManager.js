@@ -36,13 +36,6 @@ export class SingleCircle extends Shape {
             .dc(0, 0, this.radius)
     }
 
-    move_x(x_increment) {
-        this.x += x_increment
-    }
-
-    set_x(x_value) {
-        this.x = x_value
-    }
 
     destroy() {
     // This removes EVERY listener attached to this shape (click, mouseover, etc.)
@@ -106,6 +99,7 @@ export class CircleManager extends Container  {
         }
         
     }
+    
     _handleTrail(delta) {
 
         //To have trail you need it to fade (DEATH TO LIFE)
@@ -135,10 +129,6 @@ export class CircleManager extends Container  {
         ctx.stroke();
 
         } )
-
-
-
-
     }
 
     _addSingleCircle(index){
@@ -179,8 +169,6 @@ export class CircleManager extends Container  {
                 this.x = this.x % maximumWidth 
             }
         }
-
-
         
     }
 
