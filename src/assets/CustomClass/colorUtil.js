@@ -1,3 +1,4 @@
+import { green } from '@mui/material/colors';
 import Color from 'color'; 
 
 function colorFuser(colorArray) {
@@ -10,13 +11,13 @@ function colorFuser(colorArray) {
 
 
     for (let i = 0; i < len; i++) {
-        let color = colorArray[i]
-        redAccum += color.red() ;
-        greenAccum += color.green(); 
-        blueAccum += color.blue() ;
+        let colorRGB = colorArray[i].rgb().array()
+        redAccum += colorRGB[0] ;
+        greenAccum += colorRGB[1]; 
+        blueAccum += colorRGB[2] ;
     }
     
-    return Color.rgb(Math.min(redAccum/len ,255), Math.min(greenAccum/len ,255), Math.min(blueAccum/len ,255))
+    return Color.rgb(redAccum/len, greenAccum/len , blueAccum/len )
 }
 
 
@@ -60,5 +61,6 @@ var colorArrayblank =[]
 console.log(colorFuser(colorArray))
 console.log(colorArraySplitter(colorArray,1))
 console.log(arrayMultiplier([1,2,3],3).length)
+
 
 

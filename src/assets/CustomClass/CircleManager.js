@@ -30,10 +30,8 @@ export class SingleCircle extends Shape {
     
     // }
     _draw() {
-        this.graphics.
-        clear().
-        beginFill(this.color[0].rgb().string())
-            .dc(0, 0, this.radius)
+        console.log(this.color)
+        this.graphics.clear().beginFill(this.color[0].rgb().string()).dc(0, 0, this.radius)
     }
 
     clearDrawing() {
@@ -106,7 +104,7 @@ export class CircleManager extends Container  {
         let circle = new SingleCircle(
             0 , 0 + index * this.spacing, 
             this.circleRadius, 
-            [Color("white")], 
+            [Color("red"),Color("blue")], 
             index);
 
         circle.setOnClicked(this.onClicked);
@@ -152,11 +150,7 @@ _handleTrail(delta) {
         // D. Toggle Head Visibility
         // If moving, we hide the EaselJS graphic and let the trail head be the visual.
         // If stationary, we redraw the high-quality circle head.
-        if (dist === 0) {
-            child._draw();
-        } else {
-            child.clearDrawing();
-        }
+
     });
 }
 

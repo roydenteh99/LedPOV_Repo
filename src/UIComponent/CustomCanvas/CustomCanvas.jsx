@@ -70,7 +70,7 @@ export default function Canvas(props) {
                     <input 
                         autoFocus
                         className={styles.colorInput}
-                        defaultValue={activeCircle.color}
+                        defaultValue={activeCircle.color[0]} /// NOTE TO SELF : This for now is to just display the first colour of the array 
                         style = {{
                             left: activeCircle.x,
                             top: activeCircle.y
