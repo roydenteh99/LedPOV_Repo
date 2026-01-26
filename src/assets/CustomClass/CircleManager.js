@@ -12,7 +12,7 @@ export class SingleCircle extends Shape {
         this.color = color;
         this.onClicked = null;
         this.ledId = customId;
-        this._draw();
+        this._draw(); // NOTE to self if you dont want draw comment this out
         
         this.addEventListener("click", (evt) => {
             if (this.onClicked) this.onClicked(evt, this);
@@ -34,6 +34,10 @@ export class SingleCircle extends Shape {
         clear().
         beginFill(this.color[0].rgb().string())
             .dc(0, 0, this.radius)
+    }
+
+    clearDrawing() {
+        this.graphics.clear()
     }
 
 
@@ -66,7 +70,7 @@ export class CircleManager extends Container  {
         this.elapsedTime = 0
         
         this.fader = new Shape();
-        this.initfader(stated_stage)
+        // this.initfader(stated_stage)
         
         stated_stage.addChild(this.fader)
         stated_stage.addChild(this)
@@ -79,12 +83,12 @@ export class CircleManager extends Container  {
         // this.addChild(this.recorder);
     }
 
-    initfader(stage) {
-        this.fader.graphics
-        .beginFill("rgba(0, 0, 0, 0.1)") // The "fill" logic
-        .drawRect(0, 0, stage.canvas.width, stage.canvas.height);
+    // initfader(stage) {
+    //     this.fader.graphics
+    //     .beginFill("rgba(0, 0, 0, 0.05)") // The "fill" logic
+    //     .drawRect(0, 0, stage.canvas.width, stage.canvas.height);
         
-    }
+    // }
 
     init(noOfCircle, horizontalSpeed ,spacing, circleRadius, offset = [50,50]) {
         this.spacing = spacing;
@@ -110,37 +114,51 @@ export class CircleManager extends Container  {
 
     }
     
-    _handleTrail(delta) {
+_handleTrail(delta) {
+    // 1. Calculate Fade Logic (The "Death to Life" fader)
+    const fadeAlpha = Math.min(1, delta / this.fadeTimeInms);
+    // Clear the old instructions and write new ones
+    this.fader.graphics
+        .clear()
+        .beginFill(`rgba(0, 0, 0, ${fadeAlpha})`)
+        .drawRect(0, 0, this.stage.canvas.width, this.stage.canvas.height);
 
-        //To have trail you need it to fade (DEATH TO LIFE)
-        const fadeAlpha = Math.min(1,  (delta) / this.fadeTimeInms);
-        //console.log(fadeAlpha)
-        this.fader.graphics.command.fill = `rgba(0, 0, 0, ${fadeAlpha})`;
+    // 2. Prepare Drawing Context and Constants
+    const ctx = this.stage.canvas.getContext("2d");
+    const dist = (delta * this.horizontalSpeed) / 100;
+    const calAlpha = 1 - fadeAlpha;
 
-        const ctx = this.stage.canvas.getContext("2d")
-        const dist = (delta * this.horizontalSpeed) / 100 
-        const calAlpha = 1 - fadeAlpha
-        //Setting gradient
+    // 3. Process each child circle
+    this.children.forEach((child) => {
+        const startX = this.x;
+        const startY = this.y + child.y;
 
-        this.children.forEach( (child) => {
-        let gradient =ctx.createLinearGradient(this.x , this.y + child.y , this.x - dist , this.y + child.y)
-        gradient.addColorStop(0 , "white");
-        
+        // A. Define the Gradient (From current position backward)
+        let gradient = ctx.createLinearGradient(startX, startY, startX - dist, startY);
+        gradient.addColorStop(0, "white");
         gradient.addColorStop(1, `rgba(255,255,255,${calAlpha})`);
 
-        // 3. Draw the Line
+        // B. Configure Stroke Style
         ctx.strokeStyle = gradient;
         ctx.lineWidth = this.circleRadius * 2;
         ctx.lineCap = "round";
 
+        // C. Draw the Trail Path
         ctx.beginPath();
-        ctx.moveTo(this.x, this.y + child.y);              // Start at circle center
-        ctx.lineTo(this.x - dist, this.y + child.y); // Draw to the left
+        ctx.moveTo(startX, startY);             // Start at circle center
+        ctx.lineTo(startX - dist, startY);      // Draw trail trailing behind
         ctx.stroke();
 
-        } )
-    }
-
+        // D. Toggle Head Visibility
+        // If moving, we hide the EaselJS graphic and let the trail head be the visual.
+        // If stationary, we redraw the high-quality circle head.
+        if (dist === 0) {
+            child._draw();
+        } else {
+            child.clearDrawing();
+        }
+    });
+}
 
 
     syncCircleQuantity(newNoOfCircle) {
