@@ -31,7 +31,7 @@ export class SingleCircle extends Shape {
     
     // }
     _draw() {
-        console.log(this.color)
+        //console.log(this.color)
         this.graphics.clear().beginFill(this.color[0].rgb().string()).dc(0, 0, this.radius)
     }
 
@@ -47,7 +47,11 @@ export class SingleCircle extends Shape {
     
     
     updateDrawWhileRun(timeElapsed, frequency) {
-        console.log(Math.floor(timeElapsed * frequency / 1000))
+        //console.log(timeElapsed, frequency)
+        //console.log(Math.floor(timeElapsed * frequency / 1000))
+        let indexLength = Math.floor(timeElapsed * frequency / 1000)
+        let currentIndex = indexLength % this.color.length
+        this.graphics.clear().beginFill(this.color[currentIndex].rgb().string()).dc(0, 0, this.radius)
     }
 
     change_color(color) {
@@ -77,7 +81,7 @@ export class CircleManager extends Container  {
         
         stated_stage.addChild(this.fader)
         stated_stage.addChild(this)
-        //stated_stage.compositeOperation= "luminosity"
+    
 
 
         this.fadeTimeInms = 1000
@@ -128,6 +132,9 @@ _handleTrail(delta) {
     this.children.forEach((child) => {
         const startX = this.x;
         const startY = this.y + child.y;
+
+        //PreA . update head of child
+        child.updateDrawWhileRun(this.elapsedTime, this.frequency)
 
         // A. Define the Gradient (From current position backward)
         let gradient = ctx.createLinearGradient(startX, startY, startX - dist, startY);
