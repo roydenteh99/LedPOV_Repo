@@ -1,5 +1,6 @@
 import {Shape,Graphics,Container} from "@createjs/easeljs";
 import Color from 'color';
+import * as ColorUtil from "./ColorUtil.js"
 
 // Note to self should have inherit the circle class so i dont have to rewrite some of the function
 export class SingleCircle extends Shape {
@@ -42,7 +43,12 @@ export class SingleCircle extends Shape {
     destroy() {
     // This removes EVERY listener attached to this shape (click, mouseover, etc.)
         this.removeAllEventListeners();
-    }   
+    }
+    
+    
+    updateDrawWhileRun(timeElapsed, frequency) {
+        console.log(Math.floor(timeElapsed * frequency / 1000))
+    }
 
     change_color(color) {
         if (color == '') {
@@ -58,7 +64,7 @@ export class SingleCircle extends Shape {
 export class CircleManager extends Container  {
     constructor(stated_stage, onClicked = null){
         super()
-
+        
         this.onClicked = onClicked;
         this.isMoving = false;
         this.horizontalSpeed = 0;
@@ -66,27 +72,19 @@ export class CircleManager extends Container  {
         this.circleRadius = 0;
         this.offset = [50, 50];
         this.elapsedTime = 0
-        
+        this.frequency = 2 // can change in state later
         this.fader = new Shape();
-        // this.initfader(stated_stage)
         
         stated_stage.addChild(this.fader)
         stated_stage.addChild(this)
         //stated_stage.compositeOperation= "luminosity"
 
 
-        this.fadeTimeInms = 500
-        this.prevX = null
+        this.fadeTimeInms = 1000
         this.recorder = new Shape();
         // this.addChild(this.recorder);
     }
 
-    // initfader(stage) {
-    //     this.fader.graphics
-    //     .beginFill("rgba(0, 0, 0, 0.05)") // The "fill" logic
-    //     .drawRect(0, 0, stage.canvas.width, stage.canvas.height);
-        
-    // }
 
     init(noOfCircle, horizontalSpeed ,spacing, circleRadius, offset = [50,50]) {
         this.spacing = spacing;
@@ -114,7 +112,7 @@ export class CircleManager extends Container  {
     
 _handleTrail(delta) {
     // 1. Calculate Fade Logic (The "Death to Life" fader)
-    const fadeAlpha = Math.min(1, delta / this.fadeTimeInms);
+    const fadeAlpha = 1 - Math.pow(0.01, delta / this.fadeTimeInms);
     // Clear the old instructions and write new ones
     this.fader.graphics
         .clear()
@@ -148,8 +146,7 @@ _handleTrail(delta) {
         ctx.stroke();
 
         // D. Toggle Head Visibility
-        // If moving, we hide the EaselJS graphic and let the trail head be the visual.
-        // If stationary, we redraw the high-quality circle head.
+
 
     });
 }
@@ -194,11 +191,9 @@ _handleTrail(delta) {
 
         if (this.isMoving){
             this.stage.autoClear = false
-            
-            
             this.processMovement(delta)
             this._handleTrail(delta)
-            this.prevX = this.x
+            
 
         } else {
             this.stage.autoClear = true
