@@ -75,7 +75,7 @@ export default function Canvas(props) {
                             left: activeCircle.x,
                             top: activeCircle.y
                         }}
-                        size = {5}
+                        size = {15}
                         onBlur={(e)=> {
                             activeCircle.change_color(e.target.value)
                             setActiveCircle(null)

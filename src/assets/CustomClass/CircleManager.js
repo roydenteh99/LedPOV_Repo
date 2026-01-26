@@ -32,7 +32,7 @@ export class SingleCircle extends Shape {
     _draw() {
         this.graphics.
         clear().
-        beginFill(this.color)
+        beginFill(this.color[0].rgb().string())
             .dc(0, 0, this.radius)
     }
 
@@ -45,9 +45,8 @@ export class SingleCircle extends Shape {
     change_color(color) {
         if (color == '') {
             console.log("empty!")
-            this.color = "white"
         } else {
-            this.color = color;
+            this.color[0] = Color(color);
         }
         this._draw(); 
     }
@@ -97,7 +96,18 @@ export class CircleManager extends Container  {
         for (let i = 0 ; i < noOfCircle ; i++) {
             this._addSingleCircle(i)
         }
-        
+    }
+
+    _addSingleCircle(index){
+        let circle = new SingleCircle(
+            0 , 0 + index * this.spacing, 
+            this.circleRadius, 
+            [Color("white")], 
+            index);
+
+        circle.setOnClicked(this.onClicked);
+        this.addChildAt(circle, index);
+
     }
     
     _handleTrail(delta) {
@@ -131,17 +141,7 @@ export class CircleManager extends Container  {
         } )
     }
 
-    _addSingleCircle(index){
-        let circle = new SingleCircle(
-            0 , 0 + index * this.spacing, 
-            this.circleRadius, 
-            "white", 
-            index);
 
-        circle.setOnClicked(this.onClicked);
-        this.addChildAt(circle, index);
-
-    }
 
     syncCircleQuantity(newNoOfCircle) {
         while (newNoOfCircle > this.children.length){
