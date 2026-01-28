@@ -1,5 +1,5 @@
-import { green } from '@mui/material/colors';
 import Color from 'color'; 
+
 
 function colorFuser(colorArray) {
 
@@ -20,47 +20,128 @@ function colorFuser(colorArray) {
     return Color.rgb(redAccum/len, greenAccum/len , blueAccum/len )
 }
 
-
-function colorArraySplitter(colors, maxNoOfSplit) {
-    var returnColorArray=[];
-    var noOfSplits;
+function arrayMultiplier(array, multiplier) {
     
-    if (colors.length > maxNoOfSplit) {
-        noOfSplits = maxNoOfSplit;
-    } else {
-        return colors
-    }
-
-    var discreteStep =  colors.length / noOfSplits;
-    
-    
-    for (let i=0 ; i < noOfSplits ; i++) {
-        let colorSlice = colors.slice(Math.floor(discreteStep * i), Math.ceil(discreteStep * (i + 1)));
-        // console.log(colorSlice)
-        // console.log(colorFuser(colorSlice))
-        returnColorArray.push(colorFuser(colorSlice));
-    }
-
-    return returnColorArray
+    return array.map((value) => value * multiplier )
 
 }
 
-function arrayMultiplier(array, multiplier) {
-    let returnArray = [];
-    for (let i = 0 ; i < multiplier ; i++)
-    {
-            returnArray.push(...array)
+function arrayAdder(arrayA, arrayB) {
+    // Ensure arrayB exists, otherwise return a copy of arrayA
+    if (!arrayB) return [...arrayA]; 
+    
+    return arrayA.map((value, i) => value + (arrayB[i] || 0));
+}
+
+
+function colorArraySplitter(weightedColors, maxNoOfSplit) {
+    let returnArray = []
+
+    var noOfSplits = maxNoOfSplit
+    
+    // if (weightedColors.length > maxNoOfSplit) {
+    //     noOfSplits = maxNoOfSplit;
+    // } else {
+    //     return weightedColors
+    // }
+
+    
+    
+    const totalWeight = weightedColors.reduce((sum, item) => sum + item[0], 0);
+    const weightPerSeg = totalWeight/ noOfSplits 
+    var stepsToEvaluate;
+    
+    let dataIndex = 0
+    let nextIndexDestWeight = weightedColors[dataIndex][0]
+    let currentSegWeight = 0
+    let segCounter = 1
+    let accumArray = [0,0,0]
+
+
+    while (currentSegWeight < totalWeight) {
+
+    
+        if (nextIndexDestWeight  < weightPerSeg * segCounter ) {
+            stepsToEvaluate = nextIndexDestWeight - currentSegWeight
+            accumArray = arrayAdder(accumArray, arrayMultiplier(weightedColors[dataIndex][1].rgb().array(), stepsToEvaluate))
+            dataIndex += 1
+            nextIndexDestWeight += weightedColors[dataIndex][0] 
+        
+        } else if(nextIndexDestWeight == weightPerSeg * segCounter) {
+
+            stepsToEvaluate = nextIndexDestWeight - currentSegWeight
+            accumArray = arrayAdder(accumArray, arrayMultiplier(weightedColors[dataIndex][1].rgb().array(), stepsToEvaluate))
+            dataIndex += 1
+            segCounter += 1
+            arrayMultiplier(accumArray, 1 / weightPerSeg)
+            returnArray.push(arrayMultiplier(accumArray, 1 / weightPerSeg))
+            console.log(accumArray)
+            accumArray = [0,0,0]
+            
+        } else {
+            
+            stepsToEvaluate = weightPerSeg - currentSegWeight
+            accumArray = arrayAdder(accumArray, arrayMultiplier(weightedColors[dataIndex][1].rgb().array(), stepsToEvaluate))
+            segCounter += 1
+            returnArray.push(arrayMultiplier(accumArray, 1 / weightPerSeg))
+            console.log(accumArray)
+            accumArray = [0,0,0]
+
         }
+
+            currentSegWeight += stepsToEvaluate 
+
+    } 
+
+
+
+}
+
+
+
+function weightedColorArray(array, timeElapsed, delta , frequency ) {
+    let returnArray = []
+    const frequencyMillie = frequency / 1000
+    const endFloat = timeElapsed * frequencyMillie
+    const endIndexCount = Math.floor(endFloat)
+    const endPortion = endFloat - endIndexCount
+    
+    const firstFloat = (timeElapsed - delta) * frequencyMillie
+    const firstIndexCount = Math.floor(firstFloat)
+    const firstPortion = 1 - (firstFloat - firstIndexCount)
+
+    let counter = firstIndexCount 
+    
+    // Negative time jump when timer resets
+    if (firstFloat < 0) {
+        return returnArray
+    }
+
+    if (firstPortion < 1) {
+        returnArray.push([firstPortion , array[firstIndexCount % array.length]])
+        counter += 1
+    }
+    
+    while (counter  < endIndexCount) {
+        returnArray.push([1,array[counter % array.length]])
+        counter += 1
+    }
+    if (endPortion > 0) {
+        returnArray.push([endPortion  , array[endIndexCount % array.length]])
+    }
     return returnArray
 }
 
 
-
 var colorArray = [Color("red"),Color("green"),Color("blue")]
-var colorArrayblank =[]
-console.log(colorFuser(colorArray))
-console.log(colorArraySplitter(colorArray,1))
-console.log(arrayMultiplier([1,2,3],3).length)
+var testArrayblank =[1,2,3,4]
+let recordedArray= weightedColorArray(colorArray,5000,500,5)
+
+colorArraySplitter(recordedArray,3)
+recordedArray.forEach((nestedArray) => console.log(nestedArray)) 
+// console.log(colorFuser(colorArray))
+// console.log(colorArraySplitter(colorArray,1))
+
 
 
 

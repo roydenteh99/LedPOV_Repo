@@ -45,7 +45,7 @@ export class SingleCircle extends Shape {
         this.removeAllEventListeners();
     }
     
-    
+    ///Note to be fixed/    
     updateDrawWhileRun(timeElapsed, frequency) {
         //console.log(timeElapsed, frequency)
         //console.log(Math.floor(timeElapsed * frequency / 1000))
@@ -76,7 +76,7 @@ export class CircleManager extends Container  {
         this.circleRadius = 0;
         this.offset = [50, 50];
         this.elapsedTime = 0
-        this.frequency = 2 // can change in state later
+        this.frequency = 30// can change in state later
         this.fader = new Shape();
         
         stated_stage.addChild(this.fader)
@@ -146,13 +146,13 @@ _handleTrail(delta) {
         ctx.lineWidth = this.circleRadius * 2;
         ctx.lineCap = "round";
 
-        // C. Draw the Trail Path
-        ctx.beginPath();
-        ctx.moveTo(startX, startY);             // Start at circle center
-        ctx.lineTo(startX - dist, startY);      // Draw trail trailing behind
-        ctx.stroke();
+        // C. Draw the Trail Path // commented out to see the "Real" effect
+        // ctx.beginPath();
+        // ctx.moveTo(startX, startY);             // Start at circle center
+        // ctx.lineTo(startX - dist, startY);      // Draw trail trailing behind
+        // ctx.stroke();
 
-        // D. Toggle Head Visibility
+        
 
 
     });
@@ -197,13 +197,13 @@ _handleTrail(delta) {
     
 
         if (this.isMoving){
-            this.stage.autoClear = false
+            // this.stage.autoClear = false
             this.processMovement(delta)
             this._handleTrail(delta)
             
 
         } else {
-            this.stage.autoClear = true
+            // this.stage.autoClear = true
         }
     }
 
