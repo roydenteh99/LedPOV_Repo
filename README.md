@@ -1,16 +1,19 @@
-# React + Vite
+## 🌈 LED POV Simulator & Binary Engine
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+This project is a simulation environment designed to model **Persistence of Vision (POV)**. It explores how the human eye integrates high-frequency light pulses into continuous images or blended colors.
 
-Currently, two official plugins are available:
+### 🔭 The Core Concept
+When an LED flashes at high frequencies (40Hz+), the eye perceives a single blended color. However, when that LED moves rapidly through space, the temporal flashes are mapped to spatial positions, causing the colors to "split" or "streak." 
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+This tool simulates that physical phenomenon by:
+* **Simulating High-Frequency States:** Modeling LED behavior up to 1000Hz.
+* **Weighted Integration:** Using mathematical "color fusion" to represent how our retinas average light intensity over time.
+* **Spatio-Temporal Mapping:** Visualizing exactly when a color will appear solid and when it will break into distinct steps based on movement speed.
 
-## React Compiler
+### 🚀 From Simulation to Hardware
+Beyond visualization, this tool serves as a **Pre-Processor** for embedded systems.
+1. **Design:** Manipulate pixels manually or via image placement in the virtual environment.
+2. **Process:** The engine calculates the precise weighted color arrays needed for specific movement velocities.
+3. **Export:** Generates optimized binary code ready to be flashed onto an **ESP32** for real-world POV display hardware.
 
-The React Compiler is currently not compatible with SWC. See [this issue](https://github.com/vitejs/vite-plugin-react/issues/428) for tracking the progress.
-
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+## Currently it is a work in progress
