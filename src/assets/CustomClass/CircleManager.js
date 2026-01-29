@@ -46,13 +46,19 @@ export class SingleCircle extends Shape {
     }
     
     ///Note to be fixed/    
-    updateDrawWhileRun(timeElapsed, frequency) {
+    updateHeadWhileRun(timeElapsed, frequency) {
         //console.log(timeElapsed, frequency)
         //console.log(Math.floor(timeElapsed * frequency / 1000))
         let indexLength = Math.floor(timeElapsed * frequency / 1000)
         let currentIndex = indexLength % this.color.length
         this.graphics.clear().beginFill(this.color[currentIndex].rgb().string()).dc(0, 0, this.radius)
     }
+
+    updateTrail(timeElapsed ,frequency) {
+        return
+    }
+
+
 
     change_color(color) {
         if (color == '') {
@@ -133,24 +139,24 @@ _handleTrail(delta) {
         const startX = this.x;
         const startY = this.y + child.y;
 
-        //PreA . update head of child
-        child.updateDrawWhileRun(this.elapsedTime, this.frequency)
+        //3.1 . update head of child
+        child.updateHeadWhileRun(this.elapsedTime, this.frequency)
 
-        // A. Define the Gradient (From current position backward)
-        let gradient = ctx.createLinearGradient(startX, startY, startX - dist, startY);
-        gradient.addColorStop(0, "white");
-        gradient.addColorStop(1, `rgba(255,255,255,${calAlpha})`);
+        // // 3.2. Define the Gradient (From current position backward)
+        // let gradient = ctx.createLinearGradient(startX, startY, startX - dist, startY);
+        // gradient.addColorStop(0, "white");
+        // gradient.addColorStop(1, `rgba(255,255,255,${calAlpha})`);
 
-        // B. Configure Stroke Style
-        ctx.strokeStyle = gradient;
-        ctx.lineWidth = this.circleRadius * 2;
-        ctx.lineCap = "round";
+        // // 3.3. Configure Stroke Style
+        // ctx.strokeStyle = gradient;
+        // ctx.lineWidth = this.circleRadius * 2;
+        // ctx.lineCap = "round";
 
-        // C. Draw the Trail Path // commented out to see the "Real" effect
-        // ctx.beginPath();
-        // ctx.moveTo(startX, startY);             // Start at circle center
-        // ctx.lineTo(startX - dist, startY);      // Draw trail trailing behind
-        // ctx.stroke();
+        // // C. Draw the Trail Path // commented out to see the "Real" effect
+        // // ctx.beginPath();
+        // // ctx.moveTo(startX, startY);             // Start at circle center
+        // // ctx.lineTo(startX - dist, startY);      // Draw trail trailing behind
+        // // ctx.stroke();
 
         
 
