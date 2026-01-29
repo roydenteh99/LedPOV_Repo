@@ -54,8 +54,10 @@ export class SingleCircle extends Shape {
         this.graphics.clear().beginFill(this.color[currentIndex].rgb().string()).dc(0, 0, this.radius)
     }
 
-    updateTrail(timeElapsed ,frequency) {
-        return
+    updateRecordedTrail(timeElapsed, delta, frequency, maxNoOfSplit) {
+        
+        let recordedArray = ColorUtil.weightedColorArray(this.color, timeElapsed, delta, frequency)
+        return ColorUtil.colorArraySplitter(recordedArray, maxNoOfSplit)
     }
 
 
@@ -122,6 +124,8 @@ export class CircleManager extends Container  {
     
 _handleTrail(delta) {
     // 1. Calculate Fade Logic (The "Death to Life" fader)
+
+    const ctx = this.stage.canvas.getContext("2d");
     const fadeAlpha = 1 - Math.pow(0.01, delta / this.fadeTimeInms);
     // Clear the old instructions and write new ones
     this.fader.graphics
@@ -130,17 +134,35 @@ _handleTrail(delta) {
         .drawRect(0, 0, this.stage.canvas.width, this.stage.canvas.height);
 
     // 2. Prepare Drawing Context and Constants
-    const ctx = this.stage.canvas.getContext("2d");
+ 
     const dist = (delta * this.horizontalSpeed) / 100;
+    const totalWeight = delta / 1000 * this.frequency
+    const maxNoOfSplit = Math.floor(dist / (this.circleRadius * 2))
     const calAlpha = 1 - fadeAlpha;
-
+    
+    ctx.lineWidth = this.circleRadius * 2;
+    ctx.lineCap = "round"
     // 3. Process each child circle
     this.children.forEach((child) => {
-        const startX = this.x;
-        const startY = this.y + child.y;
+        let startX = this.x;
+        let startY = this.y + child.y;
 
         //3.1 . update head of child
         child.updateHeadWhileRun(this.elapsedTime, this.frequency)
+        let colorAndWeight = child.updateRecordedTrail(this.elapsedTime, delta, this.frequency, maxNoOfSplit)
+        for(let i = 0 ; i < colorAndWeight.length ; i++) {
+            
+            let [weight, color] = colorAndWeight[i]
+            
+            let step = weight / totalWeight * dist
+            ctx.beginPath();
+            ctx.strokeStyle = color.hex();
+            ctx.moveTo(startX, startY);             // Start at circle center
+            ctx.lineTo(startX - step, startY);      // Draw trail trailing behind
+            ctx.stroke();
+            startX -= step
+
+        }
 
         // // 3.2. Define the Gradient (From current position backward)
         // let gradient = ctx.createLinearGradient(startX, startY, startX - dist, startY);
@@ -203,13 +225,13 @@ _handleTrail(delta) {
     
 
         if (this.isMoving){
-            // this.stage.autoClear = false
+            this.stage.autoClear = false
             this.processMovement(delta)
             this._handleTrail(delta)
             
 
         } else {
-            // this.stage.autoClear = true
+            this.stage.autoClear = true
         }
     }
 
