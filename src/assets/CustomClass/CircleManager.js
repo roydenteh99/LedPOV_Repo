@@ -45,13 +45,14 @@ export class SingleCircle extends Shape {
         this.removeAllEventListeners();
     }
     
-    ///Note to be fixed/    
+    ///Note to be fixed//     
     updateHeadWhileRun(timeElapsed, frequency) {
-        //console.log(timeElapsed, frequency)
-        //console.log(Math.floor(timeElapsed * frequency / 1000))
+        console.log(timeElapsed, frequency)
+        console.log(Math.floor(timeElapsed * frequency / 1000))
         let indexLength = Math.floor(timeElapsed * frequency / 1000)
         let currentIndex = indexLength % this.color.length
         this.graphics.clear().beginFill(this.color[currentIndex].rgb().string()).dc(0, 0, this.radius)
+        //this.graphics.clear()
     }
 
     updateRecordedTrail(timeElapsed, delta, frequency, maxNoOfSplit) {
@@ -92,7 +93,7 @@ export class CircleManager extends Container  {
     
 
 
-        this.fadeTimeInms = 1000
+        this.fadeTimeInms = 500
         this.recorder = new Shape();
         // this.addChild(this.recorder);
     }
@@ -126,7 +127,7 @@ _handleTrail(delta) {
     // 1. Calculate Fade Logic (The "Death to Life" fader)
 
     const ctx = this.stage.canvas.getContext("2d");
-    const fadeAlpha = 1 - Math.pow(0.01, delta / this.fadeTimeInms);
+    const fadeAlpha =  (delta / this.fadeTimeInms);
     // Clear the old instructions and write new ones
     this.fader.graphics
         .clear()
@@ -137,11 +138,12 @@ _handleTrail(delta) {
  
     const dist = (delta * this.horizontalSpeed) / 100;
     const totalWeight = delta / 1000 * this.frequency
-    const maxNoOfSplit = Math.floor(dist / (this.circleRadius * 2))
+    const maxNoOfSplit = Math.floor(dist / (this.circleRadius))
     const calAlpha = 1 - fadeAlpha;
     
     ctx.lineWidth = this.circleRadius * 2;
     ctx.lineCap = "round"
+    
     // 3. Process each child circle
     this.children.forEach((child) => {
         let startX = this.x;
@@ -150,13 +152,16 @@ _handleTrail(delta) {
         //3.1 . update head of child
         child.updateHeadWhileRun(this.elapsedTime, this.frequency)
         let colorAndWeight = child.updateRecordedTrail(this.elapsedTime, delta, this.frequency, maxNoOfSplit)
+        let alphaStep = colorAndWeight.length > 0 ? (calAlpha / colorAndWeight.length) : 0
+        console.log(alphaStep)
+        
         for(let i = 0 ; i < colorAndWeight.length ; i++) {
             
             let [weight, color] = colorAndWeight[i]
             
             let step = weight / totalWeight * dist
             ctx.beginPath();
-            ctx.strokeStyle = color.hex();
+            ctx.strokeStyle = color.alpha(1 - alphaStep * (i + 1) ).hexa();
             ctx.moveTo(startX, startY);             // Start at circle center
             ctx.lineTo(startX - step, startY);      // Draw trail trailing behind
             ctx.stroke();

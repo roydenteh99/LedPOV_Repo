@@ -141,6 +141,6 @@ export function weightedColorArray(array, timeElapsed, delta , frequency ) {
 // // console.log(colorFuser(colorArray))
 // // console.log(colorArraySplitter(colorArray,2))
 
-
+console.log(Color("red").alpha(0.2))
 
 

@@ -63,7 +63,7 @@ export default function Canvas(props) {
 
     return (<div style={{ position: 'relative', display: 'inline-block' }}>
 
-                <canvas className={styles.canvas} ref={canvasRef} style={props} width={1000} height={500}/>
+                <canvas className={styles.canvas} ref={canvasRef} style={props} width={1800} height={500}/>
                 
                 
                 {activeCircle && ( // the && ie AND  means that the element of input does not get process if activeCirle is null
