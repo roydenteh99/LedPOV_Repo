@@ -47,12 +47,13 @@ export class SingleCircle extends Shape {
     
     ///Note to be fixed//     
     updateHeadWhileRun(timeElapsed, frequency) {
-        console.log(timeElapsed, frequency)
-        console.log(Math.floor(timeElapsed * frequency / 1000))
+
         let indexLength = Math.floor(timeElapsed * frequency / 1000)
         let currentIndex = indexLength % this.color.length
         this.graphics.clear().beginFill(this.color[currentIndex].rgb().string()).dc(0, 0, this.radius)
         //this.graphics.clear()
+        // console.log(timeElapsed, frequency)
+        // console.log(Math.floor(timeElapsed * frequency / 1000))
     }
 
     updateRecordedTrail(timeElapsed, delta, frequency, maxNoOfSplit) {
@@ -115,7 +116,7 @@ export class CircleManager extends Container  {
         let circle = new SingleCircle(
             0 , 0 + index * this.spacing, 
             this.circleRadius, 
-            [Color("red"),Color("blue")], 
+            [Color("red"),Color("blue"),Color("green")], 
             index);
 
         circle.setOnClicked(this.onClicked);
@@ -139,7 +140,7 @@ _handleTrail(delta) {
     const dist = (delta * this.horizontalSpeed) / 100;
     const totalWeight = delta / 1000 * this.frequency
     const maxNoOfSplit = Math.floor(dist / (this.circleRadius))
-    const calAlpha = 1 - fadeAlpha;
+    // const calAlpha = 1 - fadeAlpha;
     
     ctx.lineWidth = this.circleRadius * 2;
     ctx.lineCap = "round"
@@ -152,16 +153,17 @@ _handleTrail(delta) {
         //3.1 . update head of child
         child.updateHeadWhileRun(this.elapsedTime, this.frequency)
         let colorAndWeight = child.updateRecordedTrail(this.elapsedTime, delta, this.frequency, maxNoOfSplit)
-        let alphaStep = colorAndWeight.length > 0 ? (calAlpha / colorAndWeight.length) : 0
-        console.log(alphaStep)
+        let alphaDeduction = 0 
         
         for(let i = 0 ; i < colorAndWeight.length ; i++) {
             
             let [weight, color] = colorAndWeight[i]
-            
-            let step = weight / totalWeight * dist
+            let weight_proportion =  weight / totalWeight
+            let step = weight_proportion * dist
+            alphaDeduction += weight_proportion * fadeAlpha 
+
             ctx.beginPath();
-            ctx.strokeStyle = color.alpha(1 - alphaStep * (i + 1) ).hexa();
+            ctx.strokeStyle = color.alpha(1 - alphaDeduction).hexa();
             ctx.moveTo(startX, startY);             // Start at circle center
             ctx.lineTo(startX - step, startY);      // Draw trail trailing behind
             ctx.stroke();
