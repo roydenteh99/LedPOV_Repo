@@ -34,16 +34,20 @@ function arrayAdder(arrayA, arrayB) {
 }
 
 
-export function colorArraySplitter(weightedColors, maxNoOfSplit) {
+export function colorArraySplitter(weightedColors, maxNoOfSplit, specifiedFraction = 1) {
     let returnArray = []
     var stepsToEvaluate;
+
+    if (maxNoOfSplit == 0) {
+        return returnArray
+    }
 
     if (weightedColors.length <= maxNoOfSplit) {
         return weightedColors
     }
     var noOfSplits = maxNoOfSplit
-    const totalWeight = weightedColors.reduce((sum, item) => sum + item[0], 0);
-    const weightPerSeg = totalWeight/ noOfSplits 
+    const totalWeight = weightedColors.reduce((sum, item) => sum + item[0], 0) * specifiedFraction;
+    const weightPerSeg = totalWeight/ noOfSplits * specifiedFraction
     
     
     let dataIndex = 0
@@ -95,7 +99,7 @@ export function colorArraySplitter(weightedColors, maxNoOfSplit) {
 
 
 
-export function weightedColorArray(array, timeElapsed, delta , frequency ) {
+export function weightedColorArray(array, timeElapsed, delta , frequency) {
     let returnArray = []
     const frequencyMillie = frequency / 1000
     const endFloat = timeElapsed * frequencyMillie

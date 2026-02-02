@@ -46,20 +46,59 @@ export class SingleCircle extends Shape {
     }
     
     ///Note to be fixed//     
-    updateHeadWhileRun(timeElapsed, frequency) {
-
-        let indexLength = Math.floor(timeElapsed * frequency / 1000)
-        let currentIndex = indexLength % this.color.length
-        this.graphics.clear().beginFill(this.color[currentIndex].rgb().string()).dc(0, 0, this.radius)
+    updateHeadWhileRun(recordedArray, frameState) {
+        const {dist} = frameState; 
+        let fraction = ((this.radius * 2) / (this.radius * 2 + dist) ) 
+        let colorAndWeight = ColorUtil.colorArraySplitter(recordedArray, 1, fraction)
+        let color = colorAndWeight[0][1]
+        this.graphics.clear().beginFill(color.rgb().string()).dc(0, 0, this.radius)
+        return
+        // const {timeElapsed, frequency} = frameState;
+        // let indexLength = Math.floor(timeElapsed * frequency / 1000)
+        // let currentIndex = indexLength % this.color.length
+        // this.graphics.clear().beginFill(this.color[currentIndex].rgb().string()).dc(0, 0, this.radius)
         //this.graphics.clear()
         // console.log(timeElapsed, frequency)
         // console.log(Math.floor(timeElapsed * frequency / 1000))
     }
 
-    updateRecordedTrail(timeElapsed, delta, frequency, maxNoOfSplit) {
+    updateRecordedTrail(ctx, recordedArray, frameState) {
         
+        const {parentOffset, dist, totalWeight, fadeAlpha, maxNoOfSplit} = frameState;
+        let startX = parentOffset[0] + this.x
+        let startY = parentOffset[1] + this.y 
+        let colorAndWeight = ColorUtil.colorArraySplitter(recordedArray, maxNoOfSplit)
+
+        let alphaDeduction = 0
+
+        ctx.lineWidth = this.radius * 2;
+        ctx.lineCap = "round"
+        
+        for(let i = 0 ; i < colorAndWeight.length ; i++) {    
+            let [weight, color] = colorAndWeight[i]
+            let weight_proportion =  weight / totalWeight
+            let step = weight_proportion * dist
+            alphaDeduction += weight_proportion * fadeAlpha 
+            ctx.beginPath();
+            ctx.strokeStyle = color.alpha(1 - alphaDeduction).hexa();
+            ctx.moveTo(startX, startY);             // Start at circle center
+            ctx.lineTo(startX - step, startY);      // Draw trail trailing behind
+            ctx.stroke();
+            startX -= step
+        }
+        // console.log("running recorded trail")
+        console.log(maxNoOfSplit)
+    }
+
+
+    updateHeadAndTrailRun(ctx, frameState) {
+        const {timeElapsed, delta ,frequency} = frameState
         let recordedArray = ColorUtil.weightedColorArray(this.color, timeElapsed, delta, frequency)
-        return ColorUtil.colorArraySplitter(recordedArray, maxNoOfSplit)
+        this.updateHeadWhileRun(recordedArray,frameState)
+        this.updateRecordedTrail(ctx, recordedArray, frameState)
+        
+
+        // console.log(recordedArray)
     }
 
 
@@ -86,7 +125,7 @@ export class CircleManager extends Container  {
         this.circleRadius = 0;
         this.offset = [50, 50];
         this.elapsedTime = 0
-        this.frequency = 30// can change in state later
+        this.frequency = 100// can change in state later
         this.fader = new Shape();
         
         stated_stage.addChild(this.fader)
@@ -140,55 +179,25 @@ _handleTrail(delta) {
     const dist = (delta * this.horizontalSpeed) / 100;
     const totalWeight = delta / 1000 * this.frequency
     const maxNoOfSplit = Math.floor(dist / (this.circleRadius))
+    const parentOffset = [this.x , this.y]
+    const frameState = {
+        delta,
+        dist,
+        totalWeight,
+        maxNoOfSplit,
+        fadeAlpha,
+        parentOffset,
+        timeElapsed : this.elapsedTime,
+        frequency : this.frequency
+    }
     // const calAlpha = 1 - fadeAlpha;
     
-    ctx.lineWidth = this.circleRadius * 2;
-    ctx.lineCap = "round"
+
     
     // 3. Process each child circle
     this.children.forEach((child) => {
-        let startX = this.x;
-        let startY = this.y + child.y;
-
         //3.1 . update head of child
-        child.updateHeadWhileRun(this.elapsedTime, this.frequency)
-        let colorAndWeight = child.updateRecordedTrail(this.elapsedTime, delta, this.frequency, maxNoOfSplit)
-        let alphaDeduction = 0 
-        
-        for(let i = 0 ; i < colorAndWeight.length ; i++) {
-            
-            let [weight, color] = colorAndWeight[i]
-            let weight_proportion =  weight / totalWeight
-            let step = weight_proportion * dist
-            alphaDeduction += weight_proportion * fadeAlpha 
-
-            ctx.beginPath();
-            ctx.strokeStyle = color.alpha(1 - alphaDeduction).hexa();
-            ctx.moveTo(startX, startY);             // Start at circle center
-            ctx.lineTo(startX - step, startY);      // Draw trail trailing behind
-            ctx.stroke();
-            startX -= step
-
-        }
-
-        // // 3.2. Define the Gradient (From current position backward)
-        // let gradient = ctx.createLinearGradient(startX, startY, startX - dist, startY);
-        // gradient.addColorStop(0, "white");
-        // gradient.addColorStop(1, `rgba(255,255,255,${calAlpha})`);
-
-        // // 3.3. Configure Stroke Style
-        // ctx.strokeStyle = gradient;
-        // ctx.lineWidth = this.circleRadius * 2;
-        // ctx.lineCap = "round";
-
-        // // C. Draw the Trail Path // commented out to see the "Real" effect
-        // // ctx.beginPath();
-        // // ctx.moveTo(startX, startY);             // Start at circle center
-        // // ctx.lineTo(startX - dist, startY);      // Draw trail trailing behind
-        // // ctx.stroke();
-
-        
-
+        child.updateHeadAndTrailRun(ctx, frameState)
 
     });
 }
