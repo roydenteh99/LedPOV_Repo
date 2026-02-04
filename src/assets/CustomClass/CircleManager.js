@@ -47,10 +47,12 @@ export class SingleCircle extends Shape {
     
     ///Note to be fixed//     
     updateHeadWhileRun(recordedArray, frameState) {
-        const {dist} = frameState; 
+        const {dist , horizontalSpeed, frequency,} = frameState; 
         let fraction = ((this.radius * 2) / (this.radius * 2 + dist) ) 
         let colorAndWeight = ColorUtil.colorArraySplitter(recordedArray, 1, fraction)
         let color = colorAndWeight[0][1]
+        console.log(ColorUtil.findColorSegments(ColorUtil.rangeGenerator(this.radius * 2, frequency, horizontalSpeed, recordedArray)).length)  
+
         this.graphics.clear().beginFill(color.rgb().string()).dc(0, 0, this.radius)
         return
         // const {timeElapsed, frequency} = frameState;
@@ -62,40 +64,42 @@ export class SingleCircle extends Shape {
         // console.log(Math.floor(timeElapsed * frequency / 1000))
     }
 
-    updateRecordedTrail(ctx, recordedArray, frameState) {
+    // updateRecordedTrail(ctx, recordedArray, frameState) {
         
-        const {parentOffset, dist, totalWeight, fadeAlpha, maxNoOfSplit} = frameState;
-        let startX = parentOffset[0] + this.x
-        let startY = parentOffset[1] + this.y 
-        let colorAndWeight = ColorUtil.colorArraySplitter(recordedArray, maxNoOfSplit)
+    //     const {parentOffset, dist, totalWeight, fadeAlpha, maxNoOfSplit} = frameState;
+    //     let startX = parentOffset[0] + this.x
+    //     let startY = parentOffset[1] + this.y 
+    //     let colorAndWeight = ColorUtil.colorArraySplitter(recordedArray, maxNoOfSplit)
 
-        let alphaDeduction = 0
+    //     let alphaDeduction = 0
 
-        ctx.lineWidth = this.radius * 2;
-        ctx.lineCap = "round"
+    //     ctx.lineWidth = this.radius * 2;
+    //     ctx.lineCap = "round"
         
-        for(let i = 0 ; i < colorAndWeight.length ; i++) {    
-            let [weight, color] = colorAndWeight[i]
-            let weight_proportion =  weight / totalWeight
-            let step = weight_proportion * dist
-            alphaDeduction += weight_proportion * fadeAlpha 
-            ctx.beginPath();
-            ctx.strokeStyle = color.alpha(1 - alphaDeduction).hexa();
-            ctx.moveTo(startX, startY);             // Start at circle center
-            ctx.lineTo(startX - step, startY);      // Draw trail trailing behind
-            ctx.stroke();
-            startX -= step
-        }
-        // console.log("running recorded trail")
-        console.log(maxNoOfSplit)
-    }
+    //     for(let i = 0 ; i < colorAndWeight.length ; i++) {    
+    //         let [weight, color] = colorAndWeight[i]
+    //         let weight_proportion =  weight / totalWeight
+    //         let step = weight_proportion * dist
+    //         alphaDeduction += weight_proportion * fadeAlpha 
+    //         ctx.beginPath();
+    //         ctx.strokeStyle = color.alpha(1 - alphaDeduction).hexa();
+    //         ctx.moveTo(startX, startY);             // Start at circle center
+    //         ctx.lineTo(startX - step, startY);      // Draw trail trailing behind
+    //         ctx.stroke();
+    //         startX -= step
+    //     }
+    //     // console.log("running recorded trail")
+    //     console.log(maxNoOfSplit)
+    // }
 
 
     updateHeadAndTrailRun(ctx, frameState) {
-        const {timeElapsed, delta ,frequency} = frameState
-        let recordedArray = ColorUtil.weightedColorArray(this.color, timeElapsed, delta, frequency)
+        const {timeElapsed, delta , frequency, startCount, endCount} = frameState
+        let recordedArray = ColorUtil.weightedColorArray(this.color, startCount, endCount)
+        // console.log(recordedArray.map(value => value[0]))
+        // console.log(recordedArray.map(value => value[1].rgb().string()))
         this.updateHeadWhileRun(recordedArray,frameState)
-        this.updateRecordedTrail(ctx, recordedArray, frameState)
+        // this.updateRecordedTrail(ctx, recordedArray, frameState)
         
 
         // console.log(recordedArray)
@@ -121,18 +125,19 @@ export class CircleManager extends Container  {
         this.onClicked = onClicked;
         this.isMoving = false;
         this.horizontalSpeed = 0;
-        this.spacing = 0 ;
+        this.spacing = 0;
         this.circleRadius = 0;
         this.offset = [50, 50];
+        
         this.elapsedTime = 0
+        this.startCount = 0 
+
         this.frequency = 100// can change in state later
         this.fader = new Shape();
         
         stated_stage.addChild(this.fader)
         stated_stage.addChild(this)
     
-
-
         this.fadeTimeInms = 500
         this.recorder = new Shape();
         // this.addChild(this.recorder);
@@ -155,7 +160,7 @@ export class CircleManager extends Container  {
         let circle = new SingleCircle(
             0 , 0 + index * this.spacing, 
             this.circleRadius, 
-            [Color("red"),Color("blue"),Color("green")], 
+            [Color("red"),Color("green"),Color("blue")], 
             index);
 
         circle.setOnClicked(this.onClicked);
@@ -163,7 +168,7 @@ export class CircleManager extends Container  {
 
     }
     
-_handleTrail(delta) {
+_handleTrail(delta, endCount) {
     // 1. Calculate Fade Logic (The "Death to Life" fader)
 
     const ctx = this.stage.canvas.getContext("2d");
@@ -175,20 +180,23 @@ _handleTrail(delta) {
         .drawRect(0, 0, this.stage.canvas.width, this.stage.canvas.height);
 
     // 2. Prepare Drawing Context and Constants
+
  
     const dist = (delta * this.horizontalSpeed) / 100;
-    const totalWeight = delta / 1000 * this.frequency
+    
     const maxNoOfSplit = Math.floor(dist / (this.circleRadius))
     const parentOffset = [this.x , this.y]
     const frameState = {
         delta,
         dist,
-        totalWeight,
         maxNoOfSplit,
         fadeAlpha,
         parentOffset,
+        endCount : endCount,
+        startCount: this.startCount,
         timeElapsed : this.elapsedTime,
-        frequency : this.frequency
+        frequency : this.frequency,
+        horizontalSpeed:this.horizontalSpeed
     }
     // const calAlpha = 1 - fadeAlpha;
     
@@ -237,18 +245,33 @@ _handleTrail(delta) {
     }
 
     update(delta){
-        this.elapsedTime += delta;
-    
+        
 
         if (this.isMoving){
+
             this.stage.autoClear = false
+
+            this.elapsedTime += delta;
+            let endCount = this.elapsedTime * this.frequency / 1000
+
+            
             this.processMovement(delta)
-            this._handleTrail(delta)
+            this._handleTrail(delta, endCount)
+            
+            // console.log("Start Count",this.startCount)
+            // console.log("End Count", endCount)
+            this.startCount = endCount
             
 
         } else {
+            this.elapsedTime = 0
+            this.startCount = 0
             this.stage.autoClear = true
         }
+
+
+
+       
     }
 
 
