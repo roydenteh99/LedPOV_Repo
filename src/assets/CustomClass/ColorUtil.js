@@ -202,9 +202,9 @@ let recordedArray = weightedColorArray(colorArray,4990,5000)
 let rangesForColor =  rangeGenerator(20, 100, 500, recordedArray)
 
 
-console.log(recordedArray)
-console.log(rangesForColor)
-console.log(findColorSegments(rangesForColor))
+// console.log(recordedArray)
+// console.log(rangesForColor)
+// console.log(findColorSegments(rangesForColor))
 // recordedArray.forEach(nestedArray => console.log(nestedArray))
 // newSplit.forEach((nestedArray) => console.log(nestedArray)) 
 // // console.log(colorFuser(colorArray))

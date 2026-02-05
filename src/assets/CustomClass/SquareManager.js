@@ -2,14 +2,14 @@ import {Shape,Graphics,Container} from "@createjs/easeljs";
 import Color from 'color';
 import * as ColorUtil from "./ColorUtil.js"
 
-// Note to self should have inherit the circle class so i dont have to rewrite some of the function
-export class SingleCircle extends Shape {
+// Note to self should have inherit the Square class so i dont have to rewrite some of the function
+export class SingleSquare extends Shape {
 
-    constructor(x_centre , y_centre, radius, color, customId=0){
+    constructor(x_centre , y_centre, halfWidth, color, customId=0){
         super()
         this.x = x_centre
         this.y = y_centre
-        this.radius = radius
+        this.halfWidth = halfWidth
         this.color = color;
         this.onClicked = null;
         this.ledId = customId;
@@ -32,7 +32,8 @@ export class SingleCircle extends Shape {
     // }
     _draw() {
         //console.log(this.color)
-        this.graphics.clear().beginFill(this.color[0].rgb().string()).dc(0, 0, this.radius)
+        // this.graphics.clear().beginFill(this.color[0].rgb().string()).dc(0, 0, this.halfWidth)
+        this.graphics.clear().setStrokeStyle(this.halfWidth * 2,).beginStroke(this.color[0].rgb().string()).moveTo(0,0).lt(-this.halfWidth * 2 , 0)
     }
 
     clearDrawing() {
@@ -48,12 +49,12 @@ export class SingleCircle extends Shape {
     ///Note to be fixed//     
     updateHeadWhileRun(recordedArray, frameState) {
         const {dist , horizontalSpeed, frequency,} = frameState; 
-        let fraction = ((this.radius * 2) / (this.radius * 2 + dist) ) 
+        let fraction = ((this.halfWidth * 2) / (this.halfWidth * 2 + dist) ) 
         let colorAndWeight = ColorUtil.colorArraySplitter(recordedArray, 1, fraction)
         let color = colorAndWeight[0][1]
-        console.log(ColorUtil.findColorSegments(ColorUtil.rangeGenerator(this.radius * 2, frequency, horizontalSpeed, recordedArray)).length)  
+        console.log(ColorUtil.findColorSegments(ColorUtil.rangeGenerator(this.halfWidth * 2, frequency, horizontalSpeed, recordedArray)).length)  
 
-        this.graphics.clear().beginFill(color.rgb().string()).dc(0, 0, this.radius)
+        this.graphics.clear().setStrokeStyle(this.halfWidth * 2,).beginStroke(color.rgb().string()).moveTo(0,0).lt(-this.halfWidth * 2 , 0)
         return
         // const {timeElapsed, frequency} = frameState;
         // let indexLength = Math.floor(timeElapsed * frequency / 1000)
@@ -83,7 +84,7 @@ export class SingleCircle extends Shape {
     //         alphaDeduction += weight_proportion * fadeAlpha 
     //         ctx.beginPath();
     //         ctx.strokeStyle = color.alpha(1 - alphaDeduction).hexa();
-    //         ctx.moveTo(startX, startY);             // Start at circle center
+    //         ctx.moveTo(startX, startY);             // Start at Square center
     //         ctx.lineTo(startX - step, startY);      // Draw trail trailing behind
     //         ctx.stroke();
     //         startX -= step
@@ -118,7 +119,7 @@ export class SingleCircle extends Shape {
 
 }
 
-export class CircleManager extends Container  {
+export class SquareManager extends Container  {
     constructor(stated_stage, onClicked = null){
         super()
         
@@ -126,7 +127,7 @@ export class CircleManager extends Container  {
         this.isMoving = false;
         this.horizontalSpeed = 0;
         this.spacing = 0;
-        this.circleRadius = 0;
+        this.squreHalfWidth = 0;
         this.offset = [50, 50];
         
         this.elapsedTime = 0
@@ -144,27 +145,27 @@ export class CircleManager extends Container  {
     }
 
 
-    init(noOfCircle, horizontalSpeed ,spacing, circleRadius, offset = [50,50]) {
+    init(noOfSquare, horizontalSpeed ,spacing, squreHalfWidth, offset = [50,50]) {
         this.spacing = spacing;
         this.horizontalSpeed = horizontalSpeed;
-        this.circleRadius = circleRadius;
+        this.squreHalfWidth = squreHalfWidth;
         this.x = offset[0];
         this.y = offset[1];
         
-        for (let i = 0 ; i < noOfCircle ; i++) {
-            this._addSingleCircle(i)
+        for (let i = 0 ; i < noOfSquare ; i++) {
+            this._addSingleSquare(i)
         }
     }
 
-    _addSingleCircle(index){
-        let circle = new SingleCircle(
+    _addSingleSquare(index){
+        let square = new SingleSquare(
             0 , 0 + index * this.spacing, 
-            this.circleRadius, 
+            this.squreHalfWidth, 
             [Color("red"),Color("green"),Color("blue")], 
             index);
 
-        circle.setOnClicked(this.onClicked);
-        this.addChildAt(circle, index);
+        square.setOnClicked(this.onClicked);
+        this.addChildAt(square, index);
 
     }
     
@@ -185,7 +186,7 @@ _handleTrail(delta, endCount) {
  
     const dist = (delta * this.horizontalSpeed) / 100;
     
-    const maxNoOfSplit = Math.floor(dist / (this.circleRadius))
+    const maxNoOfSplit = Math.floor(dist / (this.squreHalfWidth))
     const parentOffset = [this.x , this.y]
     const frameState = {
         delta,
@@ -203,7 +204,7 @@ _handleTrail(delta, endCount) {
     
 
     
-    // 3. Process each child circle
+    // 3. Process each child Square
     this.children.forEach((child) => {
         //3.1 . update head of child
         child.updateHeadAndTrailRun(ctx, frameState)
@@ -212,12 +213,12 @@ _handleTrail(delta, endCount) {
 }
 
 
-    syncCircleQuantity(newNoOfCircle) {
-        while (newNoOfCircle > this.children.length){
-            this._addSingleCircle(this.children.length);
+    syncSquareQuantity(newNoOfSquare) {
+        while (newNoOfSquare > this.children.length){
+            this._addSingleSquare(this.children.length);
         }
 
-        while (newNoOfCircle< this.children.length){
+        while (newNoOfSquare< this.children.length){
            this.removeChildAt(this.children.length - 1);
         }
     }
@@ -233,7 +234,7 @@ _handleTrail(delta, endCount) {
         // Safety: Only check width if the stage is ready
         if (this.stage && this.stage.canvas) {
             let virtualWidth = this.stage.canvas.width / this.stage.scaleX;
-        // Use a dynamic reset point based on the circle size
+        // Use a dynamic reset point based on the Square size
             if (this.x > virtualWidth) {
                 this.x = this.x % virtualWidth
             }
@@ -247,7 +248,7 @@ _handleTrail(delta, endCount) {
 
     update(delta){
         
-        console.log("<CircleManager .js> Frame Rate : ", 1 / delta * 1000) // Frame Rate
+        console.log("<SquareManager .js> Frame Rate : ", 1 / delta * 1000) // Frame Rate
         if (this.isMoving){
 
             this.stage.autoClear = false
@@ -279,6 +280,5 @@ _handleTrail(delta, endCount) {
     destroy() {
         // Clean up listeners to prevent memory leaks
         this.removeAllChildren();
-        this.circleContainer = [];
     }
 }

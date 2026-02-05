@@ -1,6 +1,6 @@
 import React, { useEffect ,useRef, useState} from 'react';
 import {Ticker, Stage ,Shape, StageGL} from "@createjs/easeljs";
-import { SingleCircle , CircleManager} from '../../assets/CustomClass/CircleManager.js';
+import { SingleSquare , SquareManager} from '../../assets/CustomClass/SquareManager.js';
 import { LED_SETTINGS,SPEED_SETTINGS } from '../../config.js';
 import {InputSlider, SwitchLabels} from '../MuiComponent.jsx';
 import styles from './CustomCanvas.module.css' 
@@ -11,7 +11,7 @@ export default function Canvas(props) {
     const [speed, setSpeed] = React.useState(0);
 
     const canvasRef = useRef(null) // before it fully load lets place null as a place holder for canvasRef
-    const [activeCircle,setActiveCircle] = useState(null)
+    const [activeSquare,setActiveSquare] = useState(null)
     const managerRef =  useRef(null)
     const stageRef = useRef(null)
 
@@ -38,15 +38,15 @@ export default function Canvas(props) {
         stageRef.current = stage
         
         
-        const circleManager = new CircleManager(stage, (e, c) => setActiveCircle(c));
-        managerRef.current = circleManager;  
-        circleManager.init(noOfLed, speed, 50, 15);
+        const squareManager = new SquareManager(stage, (e, c) => setActiveSquare(c));
+        managerRef.current = squareManager;  
+        squareManager.init(noOfLed, speed, 50, 15);
         
 
         Ticker.timingMode = Ticker.RAF;
         // Ticker.framerate = 30;
         Ticker.addEventListener("tick", (event) => {
-            circleManager.update(event.delta)
+            squareManager.update(event.delta)
             //console.log("frameRate : ",Math.floor(1000/event.delta) )
             
             if (stage) {stage.update();}
@@ -55,7 +55,7 @@ export default function Canvas(props) {
         return () => {
             console.log("reset?")
             Ticker.removeAllEventListeners("tick");
-            circleManager.destroy()
+            squareManager.destroy()
             }
     }, [] ) // empty array ensure only runs on first render . Alternatively if you want to run upon change of props/ state insert them into the array
 
@@ -76,7 +76,7 @@ export default function Canvas(props) {
     
     useEffect(() => {
         if(managerRef.current) {
-            managerRef.current.syncCircleQuantity(noOfLed)
+            managerRef.current.syncSquareQuantity(noOfLed)
             managerRef.current.setIsMoving(moveLed)
             managerRef.current.syncSpeed(speed)
         }
@@ -87,19 +87,19 @@ export default function Canvas(props) {
                 <canvas className={styles.canvas} ref={canvasRef} style={props} width={1800} height={500}/>
                 
                 
-                {activeCircle && ( // the && ie AND  means that the element of input does not get process if activeCirle is null
+                {activeSquare && ( // the && ie AND  means that the element of input does not get process if activeCirle is null
                     <input 
                         autoFocus
                         className={styles.colorInput}
-                        defaultValue={activeCircle.color[0]} /// NOTE TO SELF : This for now is to just display the first colour of the array 
+                        defaultValue={activeSquare.color[0]} /// NOTE TO SELF : This for now is to just display the first colour of the array 
                         style = {{
-                            left: activeCircle.x,
-                            top: activeCircle.y
+                            left: activeSquare.x,
+                            top: activeSquare.y
                         }}
                         size = {15}
                         onBlur={(e)=> {
-                            activeCircle.change_color(e.target.value)
-                            setActiveCircle(null)
+                            activeSquare.change_color(e.target.value)
+                            setActiveSquare(null)
                                 }}
                         onKeyDown={(e)=> {
                             if (e.key === "Enter") {
