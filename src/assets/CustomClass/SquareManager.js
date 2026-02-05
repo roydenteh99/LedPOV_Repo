@@ -52,7 +52,7 @@ export class SingleSquare extends Shape {
         let fraction = ((this.halfWidth * 2) / (this.halfWidth * 2 + dist) ) 
         let colorAndWeight = ColorUtil.colorArraySplitter(recordedArray, 1, fraction)
         let color = colorAndWeight[0][1]
-        console.log(ColorUtil.findColorSegments(ColorUtil.rangeGenerator(this.halfWidth * 2, frequency, horizontalSpeed, recordedArray)).length)  
+        ColorUtil.findColorSegments(ColorUtil.rangeGenerator(this.halfWidth * 2, frequency, horizontalSpeed, recordedArray))  
 
         this.graphics.clear().setStrokeStyle(this.halfWidth * 2,).beginStroke(color.rgb().string()).moveTo(0,0).lt(-this.halfWidth * 2 , 0)
         return

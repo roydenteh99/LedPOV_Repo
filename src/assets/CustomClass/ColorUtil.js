@@ -139,7 +139,7 @@ export function rangeGenerator(minDiameter, frequency, speed, weightedArray) {
 
     weightedArray.forEach(element => {
         let weight = element[0]
-        let color = element[1].rgb().string() 
+        let color = element[1]
         
         let step = weight * waveLength
         returnArray.push([[startPoint, startPoint + step + minDiameter], color])
@@ -150,6 +150,18 @@ export function rangeGenerator(minDiameter, frequency, speed, weightedArray) {
     return returnArray
 
 }
+
+
+function fuseColor(sumR, sumG, sumB, count) {
+    if (!count) return 0
+
+    let r = (sumR / count) | 0
+    let g = (sumG / count) | 0
+    let b = (sumB / count) | 0
+
+    return (r << 16) | (g << 8) | b
+}
+
 
 export function findColorSegments(data) {
     let events = [];
@@ -195,16 +207,95 @@ export function findColorSegments(data) {
     return segments;
 }
 
+
+// export function findUintFusionColorSegments(data) {
+//     let events = [];
+
+//     data.forEach(([range, color]) => {
+//         events.push({ pos: range[0], type: 1, color });
+//         events.push({ pos: range[1], type: 0, color });
+//     });
+
+//     events.sort((a,b)=> a.pos - b.pos || a.type - b.type);
+
+//     const segments = [];
+//     const activeColors = new Map(); // color -> count
+//     let sumR = 0, sumG = 0, sumB = 0;
+//     let lastPos = events[0].pos;
+
+//     let mergeHash = 0;  // running hash key
+//     let lastHash = 0;
+
+//     const PRIME = 2654435761; // large prime for hashing
+
+//     for (const event of events) {
+//         if (event.pos > lastPos && activeColors.size > 0) {
+
+//             const totalCount = Array.from(activeColors.values()).reduce((a,b)=>a+b,0);
+//             const fused = fuseColor(sumR, sumG, sumB, totalCount);
+
+//             if (mergeHash === lastHash) {
+//                 segments[segments.length-1].range[1] = event.pos;
+//             } else {
+//                 segments.push({
+//                     range: [lastPos, event.pos],
+//                     color: fused,
+//                     count: totalCount
+//                 });
+//                 lastHash = mergeHash;
+//             }
+//         }
+
+//         // update active colors, sums, and running hash
+//         const c = event.color;
+//         const r = (c >>> 16) & 0xFF;
+//         const g = (c >>> 8) & 0xFF;
+//         const b = c & 0xFF;
+
+//         if (event.type === 1) {
+//             // add
+//             const prev = activeColors.get(c) || 0;
+//             activeColors.set(c, prev + 1);
+//             sumR += r; sumG += g; sumB += b;
+
+//             // update hash incrementally
+//             mergeHash ^= ((c + (prev + 1)) * PRIME) >>> 0;
+//             if (prev > 0) mergeHash ^= ((c + prev) * PRIME) >>> 0; // remove old count
+//         } else {
+//             // remove
+//             const prev = activeColors.get(c);
+//             if (prev === 1) activeColors.delete(c);
+//             else activeColors.set(c, prev - 1);
+//             sumR -= r; sumG -= g; sumB -= b;
+
+//             // update hash incrementally
+//             mergeHash ^= ((c + prev) * PRIME) >>> 0;
+//             if (prev > 1) mergeHash ^= ((c + prev - 1) * PRIME) >>> 0; // add new count if still exists
+//         }
+
+//         lastPos = event.pos;
+//     }
+
+//     return segments;
+// }
+
 // For testing
 var colorArray = [Color("red"),Color("green"),Color("blue")]
-// var testArrayblank =[1,2,3,4]
+
 let recordedArray = weightedColorArray(colorArray,4990,5000)
 let rangesForColor =  rangeGenerator(20, 100, 500, recordedArray)
 
+var colorUint32 = colorArray.map((color)=> (color.red() << 16) | (color.green() << 8) | color.blue())
+let recordedArrayUint32 = weightedColorArray(colorUint32,4990,5000)
+let rangesForUintColor = rangeGenerator(20, 100, 500, recordedArrayUint32)
+// // console.log(recordedArray)
+// console.log(recordedArrayUint32)
+// // console.log(rangesForColor)
+// console.log(rangesForUintColor)
 
-// console.log(recordedArray)
-// console.log(rangesForColor)
-// console.log(findColorSegments(rangesForColor))
+console.log(findColorSegments(rangesForUintColor))
+
+
 // recordedArray.forEach(nestedArray => console.log(nestedArray))
 // newSplit.forEach((nestedArray) => console.log(nestedArray)) 
 // // console.log(colorFuser(colorArray))

@@ -40,7 +40,7 @@ export default function Canvas(props) {
         
         const squareManager = new SquareManager(stage, (e, c) => setActiveSquare(c));
         managerRef.current = squareManager;  
-        squareManager.init(noOfLed, speed, 50, 15);
+        squareManager.init(noOfLed, speed, 50, 10);
         
 
         Ticker.timingMode = Ticker.RAF;
