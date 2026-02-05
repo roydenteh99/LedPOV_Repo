@@ -12,7 +12,7 @@ import { useRadioGroup } from '@mui/material';
 
 
 const Input = styled(MuiInput)`
-  width: 42px;
+  width: 50px;
 `;
 
 export function InputSlider({value, setValue, rangeWithStep, name="Unnamed", id}) {

@@ -170,14 +170,15 @@ export class CircleManager extends Container  {
     
 _handleTrail(delta, endCount) {
     // 1. Calculate Fade Logic (The "Death to Life" fader)
-
+    const virtualWidth = this.stage.canvas.width / this.stage.scaleX;
+    const virtualHeight = this.stage.canvas.height / this.stage.scaleY;
     const ctx = this.stage.canvas.getContext("2d");
     const fadeAlpha =  (delta / this.fadeTimeInms);
     // Clear the old instructions and write new ones
     this.fader.graphics
         .clear()
         .beginFill(`rgba(0, 0, 0, ${fadeAlpha})`)
-        .drawRect(0, 0, this.stage.canvas.width, this.stage.canvas.height);
+        .drawRect(0, 0, virtualWidth, virtualHeight);
 
     // 2. Prepare Drawing Context and Constants
 
@@ -231,10 +232,10 @@ _handleTrail(delta, endCount) {
         
         // Safety: Only check width if the stage is ready
         if (this.stage && this.stage.canvas) {
-            let maximumWidth = this.stage.canvas.width;
+            let virtualWidth = this.stage.canvas.width / this.stage.scaleX;
         // Use a dynamic reset point based on the circle size
-            if (this.x > maximumWidth) {
-                this.x = this.x % maximumWidth 
+            if (this.x > virtualWidth) {
+                this.x = this.x % virtualWidth
             }
         }
         
@@ -246,7 +247,7 @@ _handleTrail(delta, endCount) {
 
     update(delta){
         
-
+        console.log("<CircleManager .js> Frame Rate : ", 1 / delta * 1000) // Frame Rate
         if (this.isMoving){
 
             this.stage.autoClear = false

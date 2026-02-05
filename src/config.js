@@ -4,5 +4,5 @@ export const LED_SETTINGS = {
 };
 
 export const SPEED_SETTINGS = {
-  RANGE : [0,500,10]
+  RANGE : [0,5000,10]
 }

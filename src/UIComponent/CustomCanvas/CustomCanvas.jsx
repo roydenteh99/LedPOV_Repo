@@ -15,26 +15,33 @@ export default function Canvas(props) {
     const managerRef =  useRef(null)
     const stageRef = useRef(null)
 
+    const SCROLL_SENSITIVITY = 0.0005;
+    const MAX_ZOOM = 10;
+    const MIN_ZOOM = 0.3;
+    const [zoom, setZoom] = useState(0.4);
+    const clamp = (num, min, max) => Math.min(Math.max(num, min), max);
 
 
-    function drawStage(canvas) {
-        const stage = new Stage(canvas);
-        return stage;
-        }
 
+
+    function handleWheel(event) {
+        // console.log("handle wheel")
+        const { deltaY } = event;
+        setZoom((zoom) => clamp(zoom + deltaY * SCROLL_SENSITIVITY * -1, MIN_ZOOM, MAX_ZOOM));
+    }
+
+    
 
     useEffect(() => {
         const canvas = canvasRef.current;
-        const stage = drawStage(canvas);
+        const stage = new Stage(canvas);
+        stageRef.current = stage
         
         
         const circleManager = new CircleManager(stage, (e, c) => setActiveCircle(c));
         managerRef.current = circleManager;  
         circleManager.init(noOfLed, speed, 50, 15);
         
-
-
-
 
         Ticker.timingMode = Ticker.RAF;
         // Ticker.framerate = 30;
@@ -51,6 +58,20 @@ export default function Canvas(props) {
             circleManager.destroy()
             }
     }, [] ) // empty array ensure only runs on first render . Alternatively if you want to run upon change of props/ state insert them into the array
+
+    
+    // scaling with wheels
+    useEffect(() => {
+    const canvas = canvasRef.current;
+    const stage = stageRef.current
+    canvas.addEventListener('wheel', handleWheel);
+    stage.clear()
+    stage.set({scale: zoom })
+    
+    return () => { 
+        canvas.removeEventListener('wheel', handleWheel);
+        }
+    }, [handleWheel]);
 
     
     useEffect(() => {
