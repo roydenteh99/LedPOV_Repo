@@ -48,13 +48,9 @@ export class SingleSquare extends Shape {
     
     ///Note to be fixed//     
     updateHeadWhileRun(recordedArray, frameState) {
-        const {dist , horizontalSpeed, frequency,} = frameState; 
-        let fraction = ((this.halfWidth * 2) / (this.halfWidth * 2 + dist) ) 
-        let colorAndWeight = ColorUtil.colorArraySplitter(recordedArray, 1, fraction)
-        let color = colorAndWeight[0][1]
-        ColorUtil.findColorSegments(ColorUtil.rangeGenerator(this.halfWidth * 2, frequency, horizontalSpeed, recordedArray))  
-
-        this.graphics.clear().setStrokeStyle(this.halfWidth * 2,).beginStroke(color.rgb().string()).moveTo(0,0).lt(-this.halfWidth * 2 , 0)
+        const {horizontalSpeed, frequency,} = frameState; 
+        const toDraw = ColorUtil.rangeAndColor(this.radius * 2, frequency, horizontalSpeed, recordedArray , true , 0.25)
+        console.log(toDraw)
         return
         // const {timeElapsed, frequency} = frameState;
         // let indexLength = Math.floor(timeElapsed * frequency / 1000)

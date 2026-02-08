@@ -131,25 +131,114 @@ export function weightedColorArray(array, startCount, endCount) {
     return returnArray
 }
 
-export function rangeGenerator(minDiameter, frequency, speed, weightedArray) {
-    let returnArray = []
+export function rangeAndColor (minLength, frequency, speed, weightedArray ,sorted = true , fusionLengthRatio = 0.25 ){
+    let waveLength = speed /frequency
+    let fusionLength = (minLength + waveLength) * fusionLengthRatio
+    
+    let events = eventGenerator(minLength, frequency, speed, weightedArray ,sorted)
+    return intersectAndFuse(events,fusionLength)
+
+}
+
+function eventGenerator(minLength, frequency, speed, weightedArray ,sorted = true) {
+    let eventArray = []
     let startPoint = 0
+    
 
-    let waveLength = speed/frequency
+    let waveLength = speed /frequency
 
-    weightedArray.forEach(element => {
+    weightedArray.forEach((element, index) => {
         let weight = element[0]
         let color = element[1]
         
         let step = weight * waveLength
-        returnArray.push([[startPoint, startPoint + step + minDiameter], color])
+        eventArray.push({pos: startPoint, type : 1 , color : color , key : index})
+        eventArray.push({pos: startPoint + step + minLength, type : 0 , color : color , key : index})
         startPoint += step  
     });
 
+    if (sorted) {
+        eventArray.sort((a,b) => a.pos - b.pos || a.type - b.type)
+    }
 
-    return returnArray
-
+    return eventArray
 }
+
+
+function intersectAndFuseDebug(sortedEventArray , fusionLength = 0 )
+{   let returnSegment = []
+    let lastPos = 0
+    let activeMap = new Map()
+    sortedEventArray.forEach((ledEvent ,index) => {
+        if (ledEvent.pos <= lastPos) {
+            // console.log(ledEvent.pos, "at current position")
+            // console.log(activeMap ,"at current position")
+        
+        } else {
+            // console.log(ledEvent.pos, "at different position")
+            // console.log(activeMap ,"logging at different position")
+            const mapCopy = new Map(activeMap);
+            returnSegment.push([[lastPos,ledEvent.pos],mapCopy])
+        }
+
+        if (ledEvent.type == 1) {
+            activeMap.set(ledEvent.key,ledEvent.color )
+        } else {
+            activeMap.delete(ledEvent.key)
+        }
+
+        lastPos = ledEvent.pos
+    })
+    return returnSegment
+}
+
+
+function intersectAndFuse(sortedEventArray, fusionLength = 0)
+{   let returnSegment = []
+    let lastPos = 0
+    let sumR = 0
+    let sumG = 0
+    let sumB = 0
+    let count = 0  
+
+    sortedEventArray.forEach((ledEvent) => {
+        if (ledEvent.pos <= lastPos) {
+            console.log(ledEvent.pos, "at current position")
+            console.log(sumR, sumG , sumB , "at current position")         
+            
+        } else {
+            let length = ledEvent.pos - lastPos
+            if (length > fusionLength) {
+                console.log(ledEvent.pos, "at different position")
+                console.log(sumR, sumG , sumB ,"logging at different position")
+                returnSegment.push([[lastPos,ledEvent.pos] , fuseColor(sumR, sumG, sumB, count)])
+                lastPos = ledEvent.pos
+            } else {
+                console.log(ledEvent.pos, "at different position")
+                console.log("fusion length too shot :", length)
+            }
+
+
+        }
+
+        if (ledEvent.type == 1) {
+            sumR +=  ledEvent.color >> 16 & 0xFF;
+            sumG += ledEvent.color >> 8 & 0xFF;
+            sumB += ledEvent.color & 0xFF;
+            count += 1
+        } else {
+             
+            sumR -=  ledEvent.color >> 16 & 0xFF;
+            sumG -= ledEvent.color >> 8 & 0xFF;
+            sumB -= ledEvent.color & 0xFF;
+            count -= 1
+            
+        }
+        
+    })
+    return returnSegment
+}
+
 
 
 function fuseColor(sumR, sumG, sumB, count) {
@@ -159,148 +248,29 @@ function fuseColor(sumR, sumG, sumB, count) {
     let g = (sumG / count) | 0
     let b = (sumB / count) | 0
 
-    return (r << 16) | (g << 8) | b
+    return Color.rgb(r, g, b)
 }
 
 
-export function findColorSegments(data) {
-    let events = [];
-    
-    // 1. Create events
-    data.forEach(([range, color]) => {
-        events.push({ pos: range[0], type: 1, color: color }); // start
-        events.push({ pos: range[1], type: 0, color: color }); // end
-    });
-
-    // 2. Sort (end=0 before start=1 at same position)
-    events.sort((a, b) => a.pos - b.pos || a.type - b.type);
-
-    let segments = [];
-    let activeColors = new Set();
-    let lastPos = events[0].pos;
-    let lastColorKey = '';
-
-    // 3. Sweep
-    for (let event of events) {
-        if (event.pos > lastPos && activeColors.size > 0) {
-            // Create a sorted key for color comparison
-            let colorKey = Array.from(activeColors).sort().join('|');
-            
-            if (colorKey === lastColorKey) {
-                // Extend previous segment
-                segments[segments.length - 1].range[1] = event.pos;
-            } else {
-                // New segment
-                segments.push({
-                    range: [lastPos, event.pos],
-                    colors: colorKey.split('|'),
-                    count: activeColors.size
-                });
-                lastColorKey = colorKey;
-            }
-        }
-
-        event.type ? activeColors.add(event.color) : activeColors.delete(event.color);
-        lastPos = event.pos;
-    }
-
-    return segments;
-}
-
-
-// export function findUintFusionColorSegments(data) {
-//     let events = [];
-
-//     data.forEach(([range, color]) => {
-//         events.push({ pos: range[0], type: 1, color });
-//         events.push({ pos: range[1], type: 0, color });
-//     });
-
-//     events.sort((a,b)=> a.pos - b.pos || a.type - b.type);
-
-//     const segments = [];
-//     const activeColors = new Map(); // color -> count
-//     let sumR = 0, sumG = 0, sumB = 0;
-//     let lastPos = events[0].pos;
-
-//     let mergeHash = 0;  // running hash key
-//     let lastHash = 0;
-
-//     const PRIME = 2654435761; // large prime for hashing
-
-//     for (const event of events) {
-//         if (event.pos > lastPos && activeColors.size > 0) {
-
-//             const totalCount = Array.from(activeColors.values()).reduce((a,b)=>a+b,0);
-//             const fused = fuseColor(sumR, sumG, sumB, totalCount);
-
-//             if (mergeHash === lastHash) {
-//                 segments[segments.length-1].range[1] = event.pos;
-//             } else {
-//                 segments.push({
-//                     range: [lastPos, event.pos],
-//                     color: fused,
-//                     count: totalCount
-//                 });
-//                 lastHash = mergeHash;
-//             }
-//         }
-
-//         // update active colors, sums, and running hash
-//         const c = event.color;
-//         const r = (c >>> 16) & 0xFF;
-//         const g = (c >>> 8) & 0xFF;
-//         const b = c & 0xFF;
-
-//         if (event.type === 1) {
-//             // add
-//             const prev = activeColors.get(c) || 0;
-//             activeColors.set(c, prev + 1);
-//             sumR += r; sumG += g; sumB += b;
-
-//             // update hash incrementally
-//             mergeHash ^= ((c + (prev + 1)) * PRIME) >>> 0;
-//             if (prev > 0) mergeHash ^= ((c + prev) * PRIME) >>> 0; // remove old count
-//         } else {
-//             // remove
-//             const prev = activeColors.get(c);
-//             if (prev === 1) activeColors.delete(c);
-//             else activeColors.set(c, prev - 1);
-//             sumR -= r; sumG -= g; sumB -= b;
-
-//             // update hash incrementally
-//             mergeHash ^= ((c + prev) * PRIME) >>> 0;
-//             if (prev > 1) mergeHash ^= ((c + prev - 1) * PRIME) >>> 0; // add new count if still exists
-//         }
-
-//         lastPos = event.pos;
-//     }
-
-//     return segments;
-// }
 
 // For testing
 var colorArray = [Color("red"),Color("green"),Color("blue")]
 
-let recordedArray = weightedColorArray(colorArray,4990,5000)
-let rangesForColor =  rangeGenerator(20, 100, 500, recordedArray)
+// let recordedArray = weightedColorArray(colorArray,4990,5000)
+// let rangesForColor =  eventGeneratorGenerator(20, 100, 500, recordedArray)
 
 var colorUint32 = colorArray.map((color)=> (color.red() << 16) | (color.green() << 8) | color.blue())
-let recordedArrayUint32 = weightedColorArray(colorUint32,4990,5000)
-let rangesForUintColor = rangeGenerator(20, 100, 500, recordedArrayUint32)
-// // console.log(recordedArray)
-// console.log(recordedArrayUint32)
-// // console.log(rangesForColor)
+let recordedArrayUint32 = weightedColorArray(colorUint32,4995,5000)
+let rangesForUintColorUnsorted = eventGenerator(20, 100, 700, recordedArrayUint32,false)
+let rangesForUintColor = eventGenerator(20, 100 ,700, recordedArrayUint32,true)
+let colorOutput = rangeAndColor(20, 100 ,700, recordedArrayUint32,true)
+
 // console.log(rangesForUintColor)
+console.log(rangesForUintColorUnsorted)
+// console.log(intersectAndFuseDebug(rangesForUintColor))
+// console.log(intersectAndFuse(rangesForUintColor))
+console.log(colorOutput)
 
-console.log(findColorSegments(rangesForUintColor))
 
-
-// recordedArray.forEach(nestedArray => console.log(nestedArray))
-// newSplit.forEach((nestedArray) => console.log(nestedArray)) 
-// // console.log(colorFuser(colorArray))
-// // console.log(colorArraySplitter(colorArray,2))
-
-// console.log(Color("red").alpha(0.2))
 
 
