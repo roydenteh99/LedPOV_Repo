@@ -50,7 +50,7 @@ export class SingleSquare extends Shape {
     drawWhileRun(toDraw) {
         let offset = toDraw[0][0][1]
         console.log(offset)
-        this.graphics.clear().setStrokeStyle(this.halfWidth * 2).beginStroke("red").moveTo(0 ,0).lt(0 - offset , 0)
+        this.graphics.clear().setStrokeStyle(this.halfWidth * 2)
         // console.log(toDraw[0][0][1] ,toDraw[0][0][0]  )
         toDraw.forEach( (rangeAndColor)=> 
             { 
@@ -58,7 +58,7 @@ export class SingleSquare extends Shape {
                 let Color = rangeAndColor[1]
                 // console.log(range)
                 // console.log(Color)
-                // this.graphics.beginStroke(Color.rgb().string()).moveTo(0 ,0).lt(0 - offset , 0)
+                this.graphics.beginStroke(Color.rgb().string()).moveTo(range[1] - offset ,0).lt(range[0] - offset , 0)
                 ///TO BE Breaks SOLVED 
                 
 
@@ -143,7 +143,7 @@ export class SquareManager extends Container  {
         let square = new SingleSquare(
             0 , 0 + index * this.spacing, 
             this.squreHalfWidth, 
-            [Color("red"),Color("green"),Color("blue")], 
+            [Color("yellow"),Color('white'),Color('purple'),Color("black"),Color('purple')], 
             index);
 
         square.setOnClicked(this.onClicked);
