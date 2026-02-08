@@ -10,7 +10,7 @@ export class SingleSquare extends Shape {
         this.x = x_centre
         this.y = y_centre
         this.halfWidth = halfWidth
-        this.color = color;
+        this.color = color.map((singleColor) => singleColor.rgbNumber());
         this.onClicked = null;
         this.ledId = customId;
         this._draw(); // NOTE to self if you dont want draw comment this out
@@ -33,7 +33,7 @@ export class SingleSquare extends Shape {
     _draw() {
         //console.log(this.color)
         // this.graphics.clear().beginFill(this.color[0].rgb().string()).dc(0, 0, this.halfWidth)
-        this.graphics.clear().setStrokeStyle(this.halfWidth * 2,).beginStroke(this.color[0].rgb().string()).moveTo(0,0).lt(-this.halfWidth * 2 , 0)
+        this.graphics.clear().setStrokeStyle(this.halfWidth * 2).beginStroke(ColorUtil.Uint24ToColor(this.color[0]).rgb().string()).moveTo(0,0).lt(-this.halfWidth * 2 , 0)
     }
 
     clearDrawing() {
@@ -45,61 +45,47 @@ export class SingleSquare extends Shape {
     // This removes EVERY listener attached to this shape (click, mouseover, etc.)
         this.removeAllEventListeners();
     }
+
+
+    drawWhileRun(toDraw) {
+        let offset = toDraw[0][0][1]
+        console.log(offset)
+        this.graphics.clear().setStrokeStyle(this.halfWidth * 2).beginStroke("red").moveTo(0 ,0).lt(0 - offset , 0)
+        // console.log(toDraw[0][0][1] ,toDraw[0][0][0]  )
+        toDraw.forEach( (rangeAndColor)=> 
+            { 
+                let range = rangeAndColor[0]
+                let Color = rangeAndColor[1]
+                // console.log(range)
+                // console.log(Color)
+                // this.graphics.beginStroke(Color.rgb().string()).moveTo(0 ,0).lt(0 - offset , 0)
+                ///TO BE Breaks SOLVED 
+                
+
+            }
+        )
+
+
+    }
     
     ///Note to be fixed//     
     updateHeadWhileRun(recordedArray, frameState) {
         const {horizontalSpeed, frequency,} = frameState; 
-        const toDraw = ColorUtil.rangeAndColor(this.radius * 2, frequency, horizontalSpeed, recordedArray , true , 0.25)
-        console.log(toDraw)
-        return
-        // const {timeElapsed, frequency} = frameState;
-        // let indexLength = Math.floor(timeElapsed * frequency / 1000)
-        // let currentIndex = indexLength % this.color.length
-        // this.graphics.clear().beginFill(this.color[currentIndex].rgb().string()).dc(0, 0, this.radius)
-        //this.graphics.clear()
-        // console.log(timeElapsed, frequency)
-        // console.log(Math.floor(timeElapsed * frequency / 1000))
+        const toDraw = ColorUtil.rangeAndColor(this.halfWidth * 2, frequency, horizontalSpeed, recordedArray , true , 0.25)
+        // console.log(recordedArray.map((array)=>array[1]))
+        // console.log(toDraw.map((array) => array[0][0]),toDraw.map((array) => array[0][1]))
+        // console.log(toDraw.map((array) => array[1].rgb().string()))
+        this.drawWhileRun(toDraw)
     }
 
-    // updateRecordedTrail(ctx, recordedArray, frameState) {
-        
-    //     const {parentOffset, dist, totalWeight, fadeAlpha, maxNoOfSplit} = frameState;
-    //     let startX = parentOffset[0] + this.x
-    //     let startY = parentOffset[1] + this.y 
-    //     let colorAndWeight = ColorUtil.colorArraySplitter(recordedArray, maxNoOfSplit)
-
-    //     let alphaDeduction = 0
-
-    //     ctx.lineWidth = this.radius * 2;
-    //     ctx.lineCap = "round"
-        
-    //     for(let i = 0 ; i < colorAndWeight.length ; i++) {    
-    //         let [weight, color] = colorAndWeight[i]
-    //         let weight_proportion =  weight / totalWeight
-    //         let step = weight_proportion * dist
-    //         alphaDeduction += weight_proportion * fadeAlpha 
-    //         ctx.beginPath();
-    //         ctx.strokeStyle = color.alpha(1 - alphaDeduction).hexa();
-    //         ctx.moveTo(startX, startY);             // Start at Square center
-    //         ctx.lineTo(startX - step, startY);      // Draw trail trailing behind
-    //         ctx.stroke();
-    //         startX -= step
-    //     }
-    //     // console.log("running recorded trail")
-    //     console.log(maxNoOfSplit)
-    // }
+    
 
 
     updateHeadAndTrailRun(ctx, frameState) {
         const {timeElapsed, delta , frequency, startCount, endCount} = frameState
         let recordedArray = ColorUtil.weightedColorArray(this.color, startCount, endCount)
-        // console.log(recordedArray.map(value => value[0]))
-        // console.log(recordedArray.map(value => value[1].rgb().string()))
-        this.updateHeadWhileRun(recordedArray,frameState)
-        // this.updateRecordedTrail(ctx, recordedArray, frameState)
-        
 
-        // console.log(recordedArray)
+        this.updateHeadWhileRun(recordedArray,frameState)
     }
 
 
@@ -180,7 +166,8 @@ _handleTrail(delta, endCount) {
     // 2. Prepare Drawing Context and Constants
 
  
-    const dist = (delta * this.horizontalSpeed) / 100;
+    const dist = (delta * this.horizontalSpeed) / 1000;
+    
     
     const maxNoOfSplit = Math.floor(dist / (this.squreHalfWidth))
     const parentOffset = [this.x , this.y]
@@ -225,7 +212,7 @@ _handleTrail(delta, endCount) {
 
 
     processMovement(delta){
-        this.x += (delta * this.horizontalSpeed) / 100;
+        this.x += (delta * this.horizontalSpeed) / 1000;
         
         // Safety: Only check width if the stage is ready
         if (this.stage && this.stage.canvas) {
@@ -244,7 +231,7 @@ _handleTrail(delta, endCount) {
 
     update(delta){
         
-        console.log("<SquareManager .js> Frame Rate : ", 1 / delta * 1000) // Frame Rate
+        // console.log("<SquareManager .js><208>  Frame Rate : ", 1 / delta * 1000) // Frame Rate
         if (this.isMoving){
 
             this.stage.autoClear = false
@@ -255,9 +242,7 @@ _handleTrail(delta, endCount) {
             
             this.processMovement(delta)
             this._handleTrail(delta, endCount)
-            
-            // console.log("Start Count",this.startCount)
-            // console.log("End Count", endCount)
+    
             this.startCount = endCount
             
 

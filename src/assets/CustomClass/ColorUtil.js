@@ -20,82 +20,7 @@ function colorFuser(colorArray) {
     return Color.rgb(redAccum/len, greenAccum/len , blueAccum/len )
 }
 
-function arrayMultiplier(array, multiplier) {
-    
-    return array.map((value) => value * multiplier )
 
-}
-
-function arrayAdder(arrayA, arrayB) {
-    // Ensure arrayB exists, otherwise return a copy of arrayA
-    if (!arrayB) return [...arrayA]; 
-    
-    return arrayA.map((value, i) => value + (arrayB[i] || 0));
-}
-
-
-export function colorArraySplitter(weightedColors, maxNoOfSplit, specifiedFraction = 1) {
-    let returnArray = []
-    var stepsToEvaluate;
-
-    if (maxNoOfSplit == 0) {
-        return returnArray
-    }
-
-    if (weightedColors.length <= maxNoOfSplit) {
-        return weightedColors
-    }
-    var noOfSplits = maxNoOfSplit
-    const totalWeight = weightedColors.reduce((sum, item) => sum + item[0], 0) * specifiedFraction;
-    const weightPerSeg = totalWeight/ noOfSplits * specifiedFraction
-    
-    
-    let dataIndex = 0
-    let nextIndexDestWeight = weightedColors[dataIndex][0]
-    let currentSegWeight = 0
-    let segCounter = 1
-    let accumArray = [0,0,0]
-
-
-    while (currentSegWeight < totalWeight) {
-
-    
-        if (nextIndexDestWeight  < weightPerSeg * segCounter ) {
-            stepsToEvaluate = nextIndexDestWeight - currentSegWeight
-            accumArray = arrayAdder(accumArray, arrayMultiplier(weightedColors[dataIndex][1].rgb().array(), stepsToEvaluate))
-            dataIndex += 1
-            nextIndexDestWeight += (weightedColors[dataIndex] ? weightedColors[dataIndex][0] : 0); 
-        
-        } else if(nextIndexDestWeight == weightPerSeg * segCounter) {
-
-            stepsToEvaluate = nextIndexDestWeight - currentSegWeight
-            accumArray = arrayAdder(accumArray, arrayMultiplier(weightedColors[dataIndex][1].rgb().array(), stepsToEvaluate))
-            dataIndex += 1
-            segCounter += 1
-            arrayMultiplier(accumArray, 1 / weightPerSeg)
-            returnArray.push([weightPerSeg, Color.rgb(arrayMultiplier(accumArray, 1 / weightPerSeg))])
-            // console.log(accumArray)
-            accumArray = [0,0,0]
-            
-        } else {
-            
-            stepsToEvaluate = weightPerSeg - currentSegWeight
-            accumArray = arrayAdder(accumArray, arrayMultiplier(weightedColors[dataIndex][1].rgb().array(), stepsToEvaluate))
-            segCounter += 1
-            returnArray.push([weightPerSeg, Color.rgb(arrayMultiplier(accumArray, 1 / weightPerSeg))])
-            // console.log(accumArray)
-            accumArray = [0,0,0]
-
-        }
-
-            currentSegWeight += stepsToEvaluate 
-
-    } 
-    return returnArray
-
-
-
-}
 
 
 
@@ -131,21 +56,23 @@ export function weightedColorArray(array, startCount, endCount) {
     return returnArray
 }
 
-export function rangeAndColor (minLength, frequency, speed, weightedArray ,sorted = true , fusionLengthRatio = 0.25 ){
+export function rangeAndColor (minLength, frequency, speed, weightedArray ,sorted = true , fusionLengthRatio = 0.25 , reverse = true ){
     let waveLength = speed /frequency
     let fusionLength = (minLength + waveLength) * fusionLengthRatio
     
     let events = eventGenerator(minLength, frequency, speed, weightedArray ,sorted)
-    return intersectAndFuse(events,fusionLength)
-
+    if (reverse) { return intersectAndFuse(events, fusionLength).reverse()}
+    else { return intersectAndFuse(events, fusionLength)}
+     
 }
 
-function eventGenerator(minLength, frequency, speed, weightedArray ,sorted = true) {
+function eventGenerator(minLength, frequency, speed, weightedArray ,sorted = true ) {
     let eventArray = []
     let startPoint = 0
     
 
     let waveLength = speed /frequency
+
 
     weightedArray.forEach((element, index) => {
         let weight = element[0]
@@ -154,7 +81,8 @@ function eventGenerator(minLength, frequency, speed, weightedArray ,sorted = tru
         let step = weight * waveLength
         eventArray.push({pos: startPoint, type : 1 , color : color , key : index})
         eventArray.push({pos: startPoint + step + minLength, type : 0 , color : color , key : index})
-        startPoint += step  
+        startPoint += step 
+        
     });
 
     if (sorted) {
@@ -203,19 +131,20 @@ function intersectAndFuse(sortedEventArray, fusionLength = 0)
 
     sortedEventArray.forEach((ledEvent) => {
         if (ledEvent.pos <= lastPos) {
-            console.log(ledEvent.pos, "at current position")
-            console.log(sumR, sumG , sumB , "at current position")         
+            // console.log(ledEvent.pos, "at current position")
+            // console.log(sumR, sumG , sumB , "at current position")         
             
         } else {
             let length = ledEvent.pos - lastPos
             if (length > fusionLength) {
-                console.log(ledEvent.pos, "at different position")
-                console.log(sumR, sumG , sumB ,"logging at different position")
+                // console.log(ledEvent.pos, "at different position")
+                // console.log(sumR, sumG , sumB ,"logging at different position")
                 returnSegment.push([[lastPos,ledEvent.pos] , fuseColor(sumR, sumG, sumB, count)])
+
                 lastPos = ledEvent.pos
             } else {
-                console.log(ledEvent.pos, "at different position")
-                console.log("fusion length too shot :", length)
+                // console.log(ledEvent.pos, "at different position")
+                // console.log("fusion length too shot :", length)
             }
 
 
@@ -252,25 +181,35 @@ function fuseColor(sumR, sumG, sumB, count) {
 }
 
 
+export function Uint24ToColor(uintValue) {
+    return Color.rgb(uintValue>> 16 & 0xFF , uintValue >> 8 & 0xFF ,uintValue >> 0 & 0xFF)
+
+}
+
+// export function ColorToUint24(color) {
+
+//     return (color.red() << 16 | color.green() << 8 | color.blue() )
+// }
 
 // For testing
 var colorArray = [Color("red"),Color("green"),Color("blue")]
 
-// let recordedArray = weightedColorArray(colorArray,4990,5000)
-// let rangesForColor =  eventGeneratorGenerator(20, 100, 500, recordedArray)
+// // let recordedArray = weightedColorArray(colorArray,4990,5000)
+// // let rangesForColor =  eventGeneratorGenerator(20, 100, 500, recordedArray)
 
-var colorUint32 = colorArray.map((color)=> (color.red() << 16) | (color.green() << 8) | color.blue())
-let recordedArrayUint32 = weightedColorArray(colorUint32,4995,5000)
-let rangesForUintColorUnsorted = eventGenerator(20, 100, 700, recordedArrayUint32,false)
-let rangesForUintColor = eventGenerator(20, 100 ,700, recordedArrayUint32,true)
-let colorOutput = rangeAndColor(20, 100 ,700, recordedArrayUint32,true)
+// var colorUint32 = colorArray.map((color)=> (color.red() << 16) | (color.green() << 8) | color.blue())
+// let recordedArrayUint32 = weightedColorArray(colorUint32,4995,5000)
+// let rangesForUintColorUnsorted = eventGenerator(20, 100, 700, recordedArrayUint32,false)
+// let rangesForUintColor = eventGenerator(20, 100 ,700, recordedArrayUint32,true)
+// let colorOutput = rangeAndColor(20, 100 ,700, recordedArrayUint32,true)
 
 // console.log(rangesForUintColor)
-console.log(rangesForUintColorUnsorted)
+// console.log(rangesForUintColorUnsorted)
 // console.log(intersectAndFuseDebug(rangesForUintColor))
 // console.log(intersectAndFuse(rangesForUintColor))
-console.log(colorOutput)
-
-
+// console.log(colorOutput)
+// let testNumber = Color("red").rgbNumber()
+// console.log(testNumber)
+// console.log(testNumber >> 16 & 0xFF , testNumber >> 8 & 0xFF ,testNumber >> 0 & 0xFF)
 
 
