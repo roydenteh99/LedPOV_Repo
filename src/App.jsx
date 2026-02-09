@@ -11,7 +11,7 @@ function App() {
   
   return (
     <div>
-      <h1>POI LIGHT TEST(30 Hz)</h1>
+      <h1>POI LIGHT TEST(100 Hz)</h1>
 
       <Canvas />
 

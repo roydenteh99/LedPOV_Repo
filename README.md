@@ -9,6 +9,8 @@ This tool simulates that physical phenomenon by:
 * **Simulating High-Frequency States:** Modeling LED behavior up to 1000Hz.
 * **Weighted Integration:** Using mathematical "color fusion" to represent how our retinas average light intensity over time.
 * **Spatio-Temporal Mapping:** Visualizing exactly when a color will appear solid and when it will break into distinct steps based on movement speed.
+![LED TRAIL GIF](./LEDTRAIL.gif)
+
 
 ### 🚀 From Simulation to Hardware
 Beyond visualization, this tool serves as a **Pre-Processor** for embedded systems.
