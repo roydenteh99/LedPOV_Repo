@@ -1,6 +1,6 @@
 import React, { useEffect ,useRef, useState} from 'react';
 import {Ticker, Stage ,Shape, StageGL} from "@createjs/easeljs";
-import { SingleSquare , SquareManager} from '../../assets/CustomClass/SquareManager.js';
+import {SquareManager} from '../../assets/CustomClass/SquareManager.js';
 import { LED_SETTINGS,SPEED_SETTINGS } from '../../config.js';
 import {InputSlider, SwitchLabels} from '../MuiComponent.jsx';
 import styles from './CustomCanvas.module.css' 
@@ -44,11 +44,9 @@ export default function Canvas(props) {
         
 
         Ticker.timingMode = Ticker.RAF;
-        // Ticker.framerate = 30;
+        
         Ticker.addEventListener("tick", (event) => {
             squareManager.update(event.delta)
-            //console.log("frameRate : ",Math.floor(1000/event.delta) )
-            
             if (stage) {stage.update();}
         });
         
@@ -62,25 +60,35 @@ export default function Canvas(props) {
     
     // scaling with wheels
     useEffect(() => {
-    const canvas = canvasRef.current;
-    const stage = stageRef.current
-    canvas.addEventListener('wheel', handleWheel);
-    stage.clear()
-    stage.set({scale: zoom })
-    
+        const canvas = canvasRef.current;
+        const stage = stageRef.current
+        canvas.addEventListener('wheel', handleWheel);
+        stage.clear()
+        stage.set({scale: zoom })
     return () => { 
         canvas.removeEventListener('wheel', handleWheel);
         }
-    }, [handleWheel]);
+    }, [zoom]);
 
     
     useEffect(() => {
         if(managerRef.current) {
             managerRef.current.syncSquareQuantity(noOfLed)
+        }
+    }, [noOfLed])
+
+    useEffect(() => {
+        if(managerRef.current) {
             managerRef.current.setIsMoving(moveLed)
+        }
+    }, [moveLed])
+
+    useEffect(() => {
+        if(managerRef.current) {
             managerRef.current.syncSpeed(speed)
         }
-    }, [noOfLed,moveLed,speed])
+    }, [speed])
+
 
     return (<div style={{ position: 'relative', display: 'inline-block' }}>
 
@@ -132,9 +140,4 @@ export default function Canvas(props) {
                 id = "speed"
                 />
             </div>)
-     // Wrapper for canva passing the props into dom's/native canvas
-//Equvilent to 
-// function Canvas(props) {
-//   return <canvas {...props} />
-// }
 }

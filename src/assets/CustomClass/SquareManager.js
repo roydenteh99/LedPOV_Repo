@@ -143,7 +143,7 @@ export class SquareManager extends Container  {
         let square = new SingleSquare(
             0 , 0 + index * this.spacing, 
             this.squreHalfWidth, 
-            [Color("yellow"),Color('white'),Color('purple'),Color("black"),Color('purple')], 
+            [Color("yellow"),Color('white'),Color('purple')], 
             index);
 
         square.setOnClicked(this.onClicked);
