@@ -47,18 +47,21 @@ export class SingleSquare extends Shape {
     }
 
 
-    drawWhileRun(toDraw) {
+    drawWhileRun(toDraw, fadeAlpha) {
         let offset = toDraw[0][0][1]
-        console.log(offset)
+        let fullLength = Math.abs(offset)
         this.graphics.clear().setStrokeStyle(this.halfWidth * 2)
         // console.log(toDraw[0][0][1] ,toDraw[0][0][0]  )
         toDraw.forEach( (rangeAndColor)=> 
             { 
                 let range = rangeAndColor[0]
                 let Color = rangeAndColor[1]
+                let midPoint = (range[0] + range[1])/2
+                let alphaFactor = (1 - fadeAlpha) + (Math.abs(midPoint) / fullLength) * fadeAlpha 
+
                 // console.log(range)
                 // console.log(Color)
-                this.graphics.beginStroke(Color.rgb().string()).moveTo(range[1] - offset ,0).lt(range[0] - offset , 0)
+                this.graphics.beginStroke(Color.alpha(alphaFactor).hexa()).moveTo(range[1] - offset ,0).lt(range[0] - offset , 0)
                 ///TO BE Breaks SOLVED 
                 
 
@@ -70,12 +73,12 @@ export class SingleSquare extends Shape {
     
     ///Note to be fixed//     
     updateHeadWhileRun(recordedArray, frameState) {
-        const {horizontalSpeed, frequency,} = frameState; 
+        const {horizontalSpeed, frequency, fadeAlpha} = frameState; 
         const toDraw = ColorUtil.rangeAndColor(this.halfWidth * 2, frequency, horizontalSpeed, recordedArray , true , 0.25)
         // console.log(recordedArray.map((array)=>array[1]))
         // console.log(toDraw.map((array) => array[0][0]),toDraw.map((array) => array[0][1]))
         // console.log(toDraw.map((array) => array[1].rgb().string()))
-        this.drawWhileRun(toDraw)
+        this.drawWhileRun(toDraw, fadeAlpha);
     }
 
     

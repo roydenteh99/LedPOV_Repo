@@ -192,7 +192,9 @@ export function Uint24ToColor(uintValue) {
 // }
 
 // For testing
-var colorArray = [Color("red"),Color("green"),Color("blue")]
+
+console.log("ColorTest", typeof Color("red").hexa())
+// var colorArray = [Color("red"),Color("green"),Color("blue")]
 
 // // let recordedArray = weightedColorArray(colorArray,4990,5000)
 // // let rangesForColor =  eventGeneratorGenerator(20, 100, 500, recordedArray)
