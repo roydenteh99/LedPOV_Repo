@@ -1,24 +1,26 @@
-import React, { useEffect ,useRef, useState} from 'react';
+import { useEffect ,useRef, useState} from 'react';
 import {Ticker, Stage ,Shape, StageGL} from "@createjs/easeljs";
 import {SquareManager} from '../../assets/CustomClass/SquareManager.js';
-import { LED_SETTINGS,SPEED_SETTINGS } from '../../config.js';
+import { LED_SETTINGS, SPEED_SETTINGS, ZOOM_SETTINGS , FREQUENCY_SETTINGS } from '../../config.js';
 import {InputSlider, SwitchLabels} from '../MuiComponent.jsx';
 import styles from './CustomCanvas.module.css' 
 
 export default function Canvas(props) {
-    const [noOfLed, setNoOfLed] = React.useState(LED_SETTINGS.INITIAL_VALUE);
-    const [moveLed, setMoveLed] = React.useState(false);
-    const [speed, setSpeed] = React.useState(0);
+    
+    const {SCROLL_SENSITIVITY ,MAX_ZOOM ,MIN_ZOOM} = ZOOM_SETTINGS 
+    
+    const [noOfLed, setNoOfLed] = useState(LED_SETTINGS.INITIAL_VALUE);
+    const [frequency, setFrequency] = useState(FREQUENCY_SETTINGS.INITIAL_VALUE)
+    const [zoom, setZoom] = useState(0.4);
+    const [moveLed, setMoveLed] = useState(false);
+    const [speed, setSpeed] = useState(0);
+    
 
     const canvasRef = useRef(null) // before it fully load lets place null as a place holder for canvasRef
     const [activeSquare,setActiveSquare] = useState(null)
     const managerRef =  useRef(null)
     const stageRef = useRef(null)
-
-    const SCROLL_SENSITIVITY = 0.0005;
-    const MAX_ZOOM = 10;
-    const MIN_ZOOM = 0.3;
-    const [zoom, setZoom] = useState(0.4);
+    
     const clamp = (num, min, max) => Math.min(Math.max(num, min), max);
 
 
@@ -89,6 +91,12 @@ export default function Canvas(props) {
         }
     }, [speed])
 
+    useEffect(() => {
+        if(managerRef.current){
+            managerRef.current.setFrequency(frequency)
+        }
+    } , [frequency])
+
 
     return (<div style={{ position: 'relative', display: 'inline-block' }}>
 
@@ -138,6 +146,14 @@ export default function Canvas(props) {
                 rangeWithStep = {SPEED_SETTINGS.RANGE} 
                 name="Horizontal Speed"
                 id = "speed"
+                />
+
+                <InputSlider 
+                value = {frequency} 
+                setValue={setFrequency} 
+                rangeWithStep = {FREQUENCY_SETTINGS.RANGE} 
+                name="Frequency (hz)"
+                id = "frequency"
                 />
             </div>)
 }

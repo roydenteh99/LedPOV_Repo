@@ -28,8 +28,7 @@ export class SingleSquare extends Shape {
         this.onClicked = callback;
         return this; // Allows for chaining
     }
-    
-    // }
+
     _draw() {
         //console.log(this.color)
         // this.graphics.clear().beginFill(this.color[0].rgb().string()).dc(0, 0, this.halfWidth)
@@ -39,7 +38,6 @@ export class SingleSquare extends Shape {
     clearDrawing() {
         this.graphics.clear()
     }
-
 
     destroy() {
     // This removes EVERY listener attached to this shape (click, mouseover, etc.)
@@ -58,17 +56,12 @@ export class SingleSquare extends Shape {
                 let Color = rangeAndColor[1]
                 let midPoint = (range[0] + range[1])/2
                 let alphaFactor = (1 - fadeAlpha) + (Math.abs(midPoint) / fullLength) * fadeAlpha 
-
                 // console.log(range)
                 // console.log(Color)
                 this.graphics.beginStroke(Color.alpha(alphaFactor).hexa()).moveTo(range[1] - offset ,0).lt(range[0] - offset , 0)
                 ///TO BE Breaks SOLVED 
-                
-
             }
         )
-
-
     }
     
     ///Note to be fixed//     
@@ -81,17 +74,12 @@ export class SingleSquare extends Shape {
         this.drawWhileRun(toDraw, fadeAlpha);
     }
 
-    
-
-
     updateHeadAndTrailRun(ctx, frameState) {
         const {timeElapsed, delta , frequency, startCount, endCount} = frameState
         let recordedArray = ColorUtil.weightedColorArray(this.color, startCount, endCount)
 
         this.updateHeadWhileRun(recordedArray,frameState)
     }
-
-
 
     change_color(color) {
         if (color == '') {
@@ -154,42 +142,34 @@ export class SquareManager extends Container  {
 
     }
     
-_handleTrail(delta, endCount) {
-    // 1. Calculate Fade Logic (The "Death to Life" fader)
-    const virtualWidth = this.stage.canvas.width / this.stage.scaleX;
-    const virtualHeight = this.stage.canvas.height / this.stage.scaleY;
-    const ctx = this.stage.canvas.getContext("2d");
-    const fadeAlpha =  (delta / this.fadeTimeInms);
-    // Clear the old instructions and write new ones
-    this.fader.graphics
-        .clear()
-        .beginFill(`rgba(0, 0, 0, ${fadeAlpha})`)
-        .drawRect(0, 0, virtualWidth, virtualHeight);
+    _handleTrail(delta, endCount) {
+        // 1. Calculate Fade Logic (The "Death to Life" fader)
+        const virtualWidth = this.stage.canvas.width / this.stage.scaleX;
+        const virtualHeight = this.stage.canvas.height / this.stage.scaleY;
+        const ctx = this.stage.canvas.getContext("2d");
+        const fadeAlpha =  (delta / this.fadeTimeInms);
+        // Clear the old instructions and write new ones
+        this.fader.graphics
+            .clear()
+            .beginFill(`rgba(0, 0, 0, ${fadeAlpha})`)
+            .drawRect(0, 0, virtualWidth, virtualHeight);
 
-    // 2. Prepare Drawing Context and Constants
-
- 
-    const dist = (delta * this.horizontalSpeed) / 1000;
-    
-    
-    const maxNoOfSplit = Math.floor(dist / (this.squreHalfWidth))
-    const parentOffset = [this.x , this.y]
-    const frameState = {
-        delta,
-        dist,
-        maxNoOfSplit,
-        fadeAlpha,
-        parentOffset,
-        endCount : endCount,
-        startCount: this.startCount,
-        timeElapsed : this.elapsedTime,
-        frequency : this.frequency,
-        horizontalSpeed:this.horizontalSpeed
+        const dist = (delta * this.horizontalSpeed) / 1000;
+        const maxNoOfSplit = Math.floor(dist / (this.squreHalfWidth))
+        const parentOffset = [this.x , this.y]
+        const frameState = {
+            delta,
+            dist,
+            maxNoOfSplit,
+            fadeAlpha,
+            parentOffset,
+            endCount : endCount,
+            startCount: this.startCount,
+            timeElapsed : this.elapsedTime,
+            frequency : this.frequency,
+            horizontalSpeed:this.horizontalSpeed
     }
-    // const calAlpha = 1 - fadeAlpha;
-    
 
-    
     // 3. Process each child Square
     this.children.forEach((child) => {
         //3.1 . update head of child
@@ -212,6 +192,14 @@ _handleTrail(delta, endCount) {
     syncSpeed(speed){
         this.horizontalSpeed = speed
     }
+    
+    setIsMoving(toMove) {
+        this.isMoving = toMove
+    }
+
+    setFrequency(frequency) {
+        this.frequency = frequency
+    }
 
 
     processMovement(delta){
@@ -228,9 +216,7 @@ _handleTrail(delta, endCount) {
         
     }
 
-    setIsMoving(toMove) {
-        this.isMoving = toMove
-    }
+
 
     update(delta){
         
@@ -240,26 +226,16 @@ _handleTrail(delta, endCount) {
             this.stage.autoClear = false
 
             this.elapsedTime += delta;
-            let endCount = this.elapsedTime * this.frequency / 1000
-
-            
+            let endCount = this.elapsedTime * this.frequency / 1000            
             this.processMovement(delta)
             this._handleTrail(delta, endCount)
-    
             this.startCount = endCount
-            
-
         } else {
             this.elapsedTime = 0
             this.startCount = 0
             this.stage.autoClear = true
         }
-
-
-
-       
     }
-
 
     destroy() {
         // Clean up listeners to prevent memory leaks
