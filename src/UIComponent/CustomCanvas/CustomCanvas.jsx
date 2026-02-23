@@ -106,6 +106,7 @@ export default function Canvas(props) {
                 {activeSquare && ( // the && ie AND  means that the element of input does not get process if activeCirle is null
                     <input 
                         autoFocus
+                        type = "color"
                         className={styles.colorInput}
                         defaultValue={activeSquare.color[0]} /// NOTE TO SELF : This for now is to just display the first colour of the array 
                         style = {{

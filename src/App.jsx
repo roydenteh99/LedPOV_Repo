@@ -1,6 +1,7 @@
 import { LED_SETTINGS } from './config';
 
 import Canvas from './UIComponent/CustomCanvas/CustomCanvas';
+import ImageCanvas from './UIComponent/CustomCanvas/UploadImageCanvas';
 
 import * as React from 'react';
 import './App.css';
@@ -14,7 +15,9 @@ function App() {
       <h1>POI LIGHT TEST(For frequency above 15)</h1>
 
       <Canvas />
-
+      
+      <ImageCanvas/>
+      
     </div>
   );
 }

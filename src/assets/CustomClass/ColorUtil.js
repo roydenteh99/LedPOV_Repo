@@ -136,7 +136,7 @@ function intersectAndFuse(sortedEventArray, fusionLength = 0)
             
         } else {
             let length = ledEvent.pos - lastPos
-            if (length > fusionLength) {
+            if (length >= fusionLength) {
                 // console.log(ledEvent.pos, "at different position")
                 // console.log(sumR, sumG , sumB ,"logging at different position")
                 returnSegment.push([[lastPos,ledEvent.pos] , fuseColor(sumR, sumG, sumB, count)])

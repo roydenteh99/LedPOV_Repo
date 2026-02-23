@@ -1,5 +1,6 @@
 .canvas {
-    
+    margin: 5rem 0rem;
+    border-style: dotted solid;
     background-color: rgba(0,0,0,1);
 }
 

@@ -67,7 +67,7 @@ export class SingleSquare extends Shape {
     ///Note to be fixed//     
     updateHeadWhileRun(recordedArray, frameState) {
         const {horizontalSpeed, frequency, fadeAlpha} = frameState; 
-        const toDraw = ColorUtil.rangeAndColor(this.halfWidth * 2, frequency, horizontalSpeed, recordedArray , true , 0.25)
+        const toDraw = ColorUtil.rangeAndColor(this.halfWidth * 2, frequency, horizontalSpeed, recordedArray , true , 0.1)
         // console.log(recordedArray.map((array)=>array[1]))
         // console.log(toDraw.map((array) => array[0][0]),toDraw.map((array) => array[0][1]))
         // console.log(toDraw.map((array) => array[1].rgb().string()))
@@ -82,10 +82,12 @@ export class SingleSquare extends Shape {
     }
 
     change_color(color) {
+        console.log(color)
+        console.log(typeof(color))
         if (color == '') {
             console.log("empty!")
         } else {
-            this.color[0] = Color(color);
+            this.color[0] = Color(color).rgbNumber();
         }
         this._draw(); 
     }
