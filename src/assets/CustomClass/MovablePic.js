@@ -1,9 +1,11 @@
 import {Bitmap, Container, Shape} from "@createjs/easeljs";
 
 export default class MovablePic extends Container{
-    constructor(image) {
+    constructor(image , stateCallback) {
         super();
         this.image = image;
+        this.stateCallback = stateCallback;
+        
         const bitmap = new Bitmap(image);
         bitmap.name = "bitmap";
         bitmap.regX = image.width / 2;  // Centre the registration point for easier rotation
@@ -20,17 +22,11 @@ export default class MovablePic extends Container{
         // cornerSquare.graphics.beginFill("blue").drawRect(-5, -5, 10, 10);
         this.addChild(cornerSquare);
 
-        const corners = ["TL", "TR", "BL", "BR"].map(pos => {
-            const corner = new Shape();
-            corner.name = pos;
-            this.addChild(corner);
-            return corner;
-        });
 
-        
         this.on("mousedown", function(evt){
             evt.currentTarget.offset = {x: this.x - evt.stageX, y: this.y - evt.stageY};
             console.log("Image clicked!");
+            stateCallback(true,this); // Update the state to indicate an image is selected and pass the movable
             this.drawBorder();
         });
 
@@ -42,30 +38,16 @@ export default class MovablePic extends Container{
             evt.currentTarget.stage.update();   
         });
 
-                // Corner square logic — must be added AFTER container listeners
-        cornerSquare.on("mousedown", function (evt) {
-            evt.stopPropagation(); // Prevents the container's mousedown from firing
-            console.log("Corner clicked! Handle resize here.");
-            // Store resize origin data on the target
-            evt.currentTarget._resizeStart = {
-                stageX: evt.stageX,
-                stageY: evt.stageY,
-            };
-        });
-
-        cornerSquare.on("pressmove", function (evt) {
-            evt.stopPropagation(); // Prevents the container's pressmove from firing
-            const delta = {
-                x: evt.stageX - evt.currentTarget._resizeStart.stageX,
-                y: evt.stageY - evt.currentTarget._resizeStart.stageY,
-            };
-            console.log("Resizing delta:", delta);
-            // TODO: use delta to scale the bitmap
-        })
-
         this.x = 0;
         this.y = 0;
-        
+    }
+
+    resize(scale) {
+        const bitmap = this.getChildByName("bitmap");
+        const scaleChange = scale; // Simple scaling factor based on mouse movement
+        bitmap.scaleX = scaleChange;
+        bitmap.scaleY = scaleChange;
+        this.drawBorder(); // Redraw border to fit new size
     }
     
     drawBorder() {
@@ -78,13 +60,10 @@ export default class MovablePic extends Container{
         const height = bound.height * bitmap.scaleY;
         const cornerX = width / 2 
         const cornerY = height / 2 
-        // border.graphics.clear().setStrokeStyle(5).beginStroke("red").drawRect(-cornerX, -cornerY, width, height);
-        // cornerSquare.graphics.clear().beginFill("blue")
-        // .drawRect(-(cornerX + 15 ), -(cornerY + 15), 10, 10)
-        // .drawRect(cornerX + 5, -(cornerY + 15), 10, 10)
-        // .drawRect(-(cornerX + 15), cornerY + 5, 10, 10)
-        // .drawRect(cornerX + 5, cornerY + 5, 10, 10);
+        border.graphics.clear().setStrokeStyle(5).beginStroke("red").drawRect(-cornerX, -cornerY, width, height);
+        
     }
+
 
     clearBorder() {
         const border = this.getChildByName("border");
@@ -95,14 +74,14 @@ export default class MovablePic extends Container{
 
     
 
-    static RawImageConstructor(rawImage) {
+    static RawImageConstructor(rawImage , callback) {
         return new Promise((resolve, reject) => {
             const reader = new FileReader();
             reader.onload = (event) => {
                 const img = new Image();
                 img.src = reader.result;
                 img.onload = () => {
-                    resolve(new MovablePic(img));
+                    resolve(new MovablePic(img , callback));
                 };
             img.onerror = reject
         };

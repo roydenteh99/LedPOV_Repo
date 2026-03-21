@@ -4,12 +4,17 @@ import {Stage, Shape} from "@createjs/easeljs";
 import MovablePic from '../../assets/CustomClass/MovablePic.js';
 import {Grid} from '../../assets/CustomClass/Grid.js';
 import Button from '@mui/material/Button';
-
+import {InputSlider} from '../MuiComponent.jsx';
 
 export default function Canvas(props) {
+
     const canvasRef = useRef(null);
     const stageRef = useRef(null);
     const gridRef = useRef(null);
+    
+    const selectedImageRef = useRef(null);
+    const [rotation, setRotation] = useState(0); // Use useRef for mutable value that doesn't trigger re-renders
+    const [imageSelected, setImageSelected] = useState(false); // when interacting with React UI components, useState is more suitable for triggering re-renders and managing state changes.
     
     useEffect(() => {
         const canvas = canvasRef.current;
@@ -23,15 +28,21 @@ export default function Canvas(props) {
         // TestColorExtraction(stageRef.current);
 
         }, [])
-
+    
+    
 
     function addImageToCanvas(file) {
         if (!file) return;
-        MovablePic.RawImageConstructor(file).then((movablePic) => {
+        MovablePic.RawImageConstructor(file, (state , movablePic) => {
+            setImageSelected(state)
+            console.log("State updated to:", state);
+            selectedImageRef.current = movablePic;
+        }).then((movablePic) => {
                 movablePic.name="movablePic";
                 stageRef.current.addChild(movablePic);
                 stageRef.current.setChildIndex(movablePic, 0); // Move the new child to the top 
-                stageRef.current.update(); // Update the canvas to show the new child
+                stageRef.current.update();
+                 // Update the reference to the selected image
             });
         };
 
@@ -44,10 +55,27 @@ export default function Canvas(props) {
                                 console.log(e.target.files[0])}
                 } />
         </label>
+
         <Button variant="contained" onClick={() => {
             console.log("rasterise!")
             gridRef.current.gridRasterisation();
-            }}>Rasterise</Button>
+            }}>
+            Rasterise
+        </Button>
+
+        {imageSelected && (
+            <InputSlider 
+                value={rotation}
+                setValue = {selectedImageRef.current ? (newValue) => {
+                    selectedImageRef.current.rotation = newValue;
+                    setRotation(newValue); // Update the state to reflect the new rotation
+                    stageRef.current.update();
+                } : () => {console.warn("No image selected to rotate!");}}
+                rangeWithStep = {[0,360,1]}
+                name ="Rotation Angle"
+                id = "rotation"
+        />
+        )}        
         
     </>
     )}
