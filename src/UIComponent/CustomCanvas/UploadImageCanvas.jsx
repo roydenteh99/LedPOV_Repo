@@ -21,10 +21,26 @@ export default function Canvas(props) {
         const stage = new Stage(canvas);
         stageRef.current = stage;
         stage.doubleClickEnabled = true;
+        stage.on("mousedown", function(evt) {
+                console.log(evt ,"Stage clicked, no image selected.");
+            });
+
+        const hit = new Shape();
+        hit.graphics.beginFill("black").drawRect(0, 0, 1800, 500); 
+        stage.addChild(hit);
+
         const grid = new Grid(10, 10, 2);
         gridRef.current = grid;
         stage.addChild(grid);
+        
+
+
+
         stage.update();
+
+        return () => {
+            stage.removeAllEventListeners();
+        }
         // TestColorExtraction(stageRef.current);
 
         }, [])
@@ -40,7 +56,7 @@ export default function Canvas(props) {
         }).then((movablePic) => {
                 movablePic.name="movablePic";
                 stageRef.current.addChild(movablePic);
-                stageRef.current.setChildIndex(movablePic, 0); // Move the new child to the top 
+                stageRef.current.setChildIndex(movablePic, 1); // Move the new child to the top 
                 stageRef.current.update();
                  // Update the reference to the selected image
             });
@@ -66,11 +82,11 @@ export default function Canvas(props) {
         {imageSelected && (
             <InputSlider 
                 value={rotation}
-                setValue = {selectedImageRef.current ? (newValue) => {
+                setValue = {(newValue) => {
                     selectedImageRef.current.rotation = newValue;
                     setRotation(newValue); // Update the state to reflect the new rotation
                     stageRef.current.update();
-                } : () => {console.warn("No image selected to rotate!");}}
+                }}
                 rangeWithStep = {[0,360,1]}
                 name ="Rotation Angle"
                 id = "rotation"

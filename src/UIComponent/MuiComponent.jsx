@@ -88,7 +88,6 @@ export function SwitchLabels({value, setValue, label}) {
     setValue(!value);
   }
 
-
   return (
     <FormGroup>
       <FormControlLabel control={<Switch checked= {value} onChange={onChange}/>} label={label} />

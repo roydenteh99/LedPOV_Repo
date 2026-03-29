@@ -25,6 +25,7 @@ export default class MovablePic extends Container{
 
         this.on("mousedown", function(evt){
             evt.currentTarget.offset = {x: this.x - evt.stageX, y: this.y - evt.stageY};
+            evt.stopPropagation();
             console.log("Image clicked!");
             stateCallback(true,this); // Update the state to indicate an image is selected and pass the movable
             this.drawBorder();
@@ -90,3 +91,6 @@ export default class MovablePic extends Container{
             reader.readAsDataURL(rawImage);
         })}
 }
+
+
+// NOTE TO SELF event still propagate to main stage when click on the image, need to stop it and also need to make sure that the image is selected when click on it.
